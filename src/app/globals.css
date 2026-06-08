@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import "../../design-tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: var(--sys-color-background);
+  color: var(--sys-color-on-background);
+  font-family: var(--sys-typography-body-body-large-font-family), sans-serif;
+  font-size: var(--sys-typography-body-body-large-font-size);
+  font-weight: var(--sys-typography-body-body-large-font-weight);
+  line-height: var(--sys-typography-body-body-large-line-height);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+input, button, select, textarea {
+  font-family: inherit;
+}
