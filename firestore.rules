@@ -1,8 +1,73 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isDocOwner() {
+      return isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+    
+    function isCreatingOwnDoc() {
+      return isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+
+    // 1. Users
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // 2. Personal Content (Materials, Summaries, Flashcards, Quizzes, Attempts, Chat Sessions)
+    match /studyMaterials/{docId} { allow read, update, delete: if isDocOwner(); allow create: if isCreatingOwnDoc(); }
+    match /summaries/{docId} { allow read, update, delete: if isDocOwner(); allow create: if isCreatingOwnDoc(); }
+    match /flashcards/{docId} { allow read, update, delete: if isDocOwner(); allow create: if isCreatingOwnDoc(); }
+    match /quizzes/{docId} { allow read, update, delete: if isDocOwner(); allow create: if isCreatingOwnDoc(); }
+    match /quizAttempts/{docId} { allow read, update, delete: if isDocOwner(); allow create: if isCreatingOwnDoc(); }
+    match /chatSessions/{docId} { allow read, update, delete: if isDocOwner(); allow create: if isCreatingOwnDoc(); }
+    
+    // 3. Chat Messages (Requires parent session check)
+    match /chatMessages/{messageId} {
+      allow read, update, delete: if isAuthenticated() && get(/databases/$(database)/documents/chatSessions/$(resource.data.sessionId)).data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && get(/databases/$(database)/documents/chatSessions/$(request.resource.data.sessionId)).data.userId == request.auth.uid;
+    }
+    
+    // 4. Study Rooms (Collaborative)
+    match /studyRooms/{roomId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+    }
+    
+    match /studyRoomMembers/{membershipId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        get(/databases/$(database)/documents/studyRooms/$(resource.data.roomId)).data.ownerId == request.auth.uid
+      );
+    }
+    
+    match /studyRoomMessages/{messageId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.senderId == request.auth.uid;
+    }
+    
+    match /aiReviews/{reviewId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAuthenticated(); // Allows any authenticated user to request/read AI reviews in rooms
+    }
+    
+    // Catch-all: Deny any access not explicitly allowed above
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

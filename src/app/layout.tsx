@@ -3,8 +3,32 @@ import "./globals.css";
 import PwaRegister from "@/components/layout/PwaRegister";
 
 export const metadata: Metadata = {
-  title: "StudyEezy",
-  description: "AI-powered collaborative learning and assessment platform",
+  title: {
+    template: "%s | StudyEezy",
+    default: "StudyEezy - AI Collaborative Learning & Assessment Platform",
+  },
+  description: "StudyEezy is an AI-powered collaborative learning platform. Upload notes, generate summaries, master flashcards, and ace your quizzes with peer learning.",
+  keywords: ["study", "learning", "AI tutor", "flashcards", "quizzes", "collaborative learning", "exam prep", "StudyEezy"],
+  icons: {
+    icon: "/logo.jpeg",
+    apple: "/logo.jpeg",
+  },
+  openGraph: {
+    title: "StudyEezy - AI Collaborative Learning",
+    description: "Upload notes, generate summaries, master flashcards, and ace your quizzes.",
+    url: "https://studyyeezy.com",
+    siteName: "StudyEezy",
+    images: [
+      {
+        url: "/logo.jpeg",
+        width: 800,
+        height: 600,
+        alt: "StudyEezy Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
   manifest: "/manifest.json",
 };
 

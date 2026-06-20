@@ -1,0 +1,29 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // Materials
+    match /materials/{userId}/{fileName} {
+      // Users can only upload to their own folder, max 15MB, must be an image or document
+      allow write: if isAuthenticated() && 
+                      request.auth.uid == userId && 
+                      request.resource.size < 15 * 1024 * 1024;
+                      
+      // Users can only read their own files
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Users can delete their own files
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+  }
+}
