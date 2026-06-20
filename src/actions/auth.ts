@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { adminDb } from "@/lib/firebaseAdmin";
+import { adminDb, adminAuth } from "@/lib/firebaseAdmin";
 import { Timestamp } from "firebase-admin/firestore";
 
 /**
