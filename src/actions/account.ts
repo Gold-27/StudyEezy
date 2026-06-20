@@ -44,6 +44,8 @@ export async function deleteUserAccountAndData() {
     }
 
     if (adminDb) {
+      const db = adminDb; // Local const for TypeScript closure narrowing
+
       // 2. Collect all document references to delete
       const batchDeletePromises: Promise<FirebaseFirestore.WriteResult[]>[] = [];
 
@@ -51,46 +53,46 @@ export async function deleteUserAccountAndData() {
       const deleteQueryBatch = async (query: FirebaseFirestore.Query) => {
         const snapshot = await query.get();
         if (snapshot.size === 0) return;
-        const batch = adminDb.batch();
+        const batch = db.batch();
         snapshot.docs.forEach((doc) => batch.delete(doc.ref));
         await batch.commit();
       };
 
       // 3. Delete Study Materials
-      await deleteQueryBatch(adminDb.collection("studyMaterials").where("userId", "==", uid));
+      await deleteQueryBatch(db.collection("studyMaterials").where("userId", "==", uid));
 
       // 4. Delete Summaries
-      await deleteQueryBatch(adminDb.collection("summaries").where("userId", "==", uid));
+      await deleteQueryBatch(db.collection("summaries").where("userId", "==", uid));
 
       // 5. Delete Flashcards
-      await deleteQueryBatch(adminDb.collection("flashcards").where("userId", "==", uid));
+      await deleteQueryBatch(db.collection("flashcards").where("userId", "==", uid));
 
       // 6. Delete Quizzes and Attempts
-      await deleteQueryBatch(adminDb.collection("quizzes").where("userId", "==", uid));
-      await deleteQueryBatch(adminDb.collection("quizAttempts").where("userId", "==", uid));
+      await deleteQueryBatch(db.collection("quizzes").where("userId", "==", uid));
+      await deleteQueryBatch(db.collection("quizAttempts").where("userId", "==", uid));
 
       // 7. Delete Chat Sessions and their messages
-      const sessionsSnap = await adminDb.collection("chatSessions").where("userId", "==", uid).get();
+      const sessionsSnap = await db.collection("chatSessions").where("userId", "==", uid).get();
       for (const sessionDoc of sessionsSnap.docs) {
-        await deleteQueryBatch(adminDb.collection("chatMessages").where("sessionId", "==", sessionDoc.id));
+        await deleteQueryBatch(db.collection("chatMessages").where("sessionId", "==", sessionDoc.id));
         await sessionDoc.ref.delete();
       }
 
       // 8. Handle Study Rooms
       // Remove memberships
-      await deleteQueryBatch(adminDb.collection("studyRoomMembers").where("userId", "==", uid));
+      await deleteQueryBatch(db.collection("studyRoomMembers").where("userId", "==", uid));
       
       // Delete owned rooms (and cascade delete room memberships, messages, AI reviews)
-      const ownedRoomsSnap = await adminDb.collection("studyRooms").where("ownerId", "==", uid).get();
+      const ownedRoomsSnap = await db.collection("studyRooms").where("ownerId", "==", uid).get();
       for (const roomDoc of ownedRoomsSnap.docs) {
-        await deleteQueryBatch(adminDb.collection("studyRoomMembers").where("roomId", "==", roomDoc.id));
-        await deleteQueryBatch(adminDb.collection("studyRoomMessages").where("roomId", "==", roomDoc.id));
-        await deleteQueryBatch(adminDb.collection("aiReviews").where("roomId", "==", roomDoc.id));
+        await deleteQueryBatch(db.collection("studyRoomMembers").where("roomId", "==", roomDoc.id));
+        await deleteQueryBatch(db.collection("studyRoomMessages").where("roomId", "==", roomDoc.id));
+        await deleteQueryBatch(db.collection("aiReviews").where("roomId", "==", roomDoc.id));
         await roomDoc.ref.delete();
       }
 
       // 9. Finally, delete the User profile document
-      await adminDb.collection("users").doc(uid).delete();
+      await db.collection("users").doc(uid).delete();
     }
 
     // 10. Delete the User from Firebase Auth
