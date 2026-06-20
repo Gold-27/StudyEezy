@@ -8,7 +8,7 @@ function generateMockCompletion(systemPrompt: string, userPrompt: string): strin
   const lowerSystem = systemPrompt.toLowerCase();
 
   // Flashcards prompt match
-  if (lowerUser.includes("flashcard") || lowerSystem.includes("flashcard")) {
+  if (lowerSystem.includes("flashcard")) {
     return JSON.stringify([
       {
         front: "What is the primary light-absorbing pigment in green plants?",
@@ -25,36 +25,8 @@ function generateMockCompletion(systemPrompt: string, userPrompt: string): strin
     ]);
   }
 
-  // Quiz generation match
-  if (lowerUser.includes("quiz") || lowerSystem.includes("quiz")) {
-    return JSON.stringify([
-      {
-        id: "q1",
-        type: "mcq",
-        question: "Which of the following is produced during the light-dependent reactions of photosynthesis?",
-        options: ["Glucose", "Carbon Dioxide", "Oxygen", "Water"],
-        answer: "Oxygen",
-        explanation: "Oxygen is produced when water molecules are split during photolysis in photosystem II.",
-      },
-      {
-        id: "q2",
-        type: "shortAnswer",
-        question: "In which specific structure of the chloroplast does the Calvin Cycle occur?",
-        answer: "Stroma",
-        explanation: "The Calvin cycle occurs in the stroma, which is the fluid surrounding the thylakoid membranes.",
-      },
-      {
-        id: "q3",
-        type: "theory",
-        question: "Explain why plants appear green to the human eye in terms of light absorption.",
-        answer: "Chlorophyll pigments absorb light in the blue-violet and red wavelengths, but reflect green light, which is captured by our eyes.",
-        explanation: "Rubric check: Verify mention of blue/red light absorption and green light reflection."
-      }
-    ]);
-  }
-
-  // Quiz evaluation match
-  if (lowerUser.includes("evaluation") || lowerSystem.includes("evaluation")) {
+  // Quiz evaluation match (check this before generic quiz)
+  if (lowerSystem.includes("evaluator") || lowerSystem.includes("re-evaluations")) {
     return JSON.stringify({
       score: 2,
       percentage: 66,
@@ -88,8 +60,36 @@ function generateMockCompletion(systemPrompt: string, userPrompt: string): strin
     });
   }
 
+  // Quiz generation match
+  if (lowerSystem.includes("assessment generator")) {
+    return JSON.stringify([
+      {
+        id: "q1",
+        type: "mcq",
+        question: "Which of the following is produced during the light-dependent reactions of photosynthesis?",
+        options: ["Glucose", "Carbon Dioxide", "Oxygen", "Water"],
+        answer: "Oxygen",
+        explanation: "Oxygen is produced when water molecules are split during photolysis in photosystem II.",
+      },
+      {
+        id: "q2",
+        type: "shortAnswer",
+        question: "In which specific structure of the chloroplast does the Calvin Cycle occur?",
+        answer: "Stroma",
+        explanation: "The Calvin cycle occurs in the stroma, which is the fluid surrounding the thylakoid membranes.",
+      },
+      {
+        id: "q3",
+        type: "theory",
+        question: "Explain why plants appear green to the human eye in terms of light absorption.",
+        answer: "Chlorophyll pigments absorb light in the blue-violet and red wavelengths, but reflect green light, which is captured by our eyes.",
+        explanation: "Rubric check: Verify mention of blue/red light absorption and green light reflection."
+      }
+    ]);
+  }
+
   // Study room AI Review Mode match
-  if (lowerUser.includes("review") || lowerSystem.includes("review")) {
+  if (lowerSystem.includes("reviewer")) {
     return JSON.stringify({
       score: 8,
       strengths: [
@@ -106,7 +106,12 @@ function generateMockCompletion(systemPrompt: string, userPrompt: string): strin
     });
   }
 
-  // Default: Summary mock
+  // Chat tutor match
+  if (lowerSystem.includes("tutor") && lowerSystem.includes("dedicated studyeezy ai tutor")) {
+    return "I am your StudyEezy AI tutor! How can I help you understand this concept better today?";
+  }
+
+  // Default: Summary mock (Since "tutor" is in summary system prompt too, we use this as fallback)
   let summaryType = "Summary";
   if (lowerUser.includes("short")) summaryType = "Short Summary";
   else if (lowerUser.includes("detailed")) summaryType = "Detailed Summary";
@@ -142,32 +147,56 @@ export async function queryDeepSeek(systemPrompt: string, userPrompt: string, te
     return generateMockCompletion(systemPrompt, userPrompt);
   }
 
-  try {
-    const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature,
-      }),
-    });
+  let lastError: any = null;
+  const maxRetries = 3;
+  const baseDelay = 1500; // 1.5s base delay
 
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`DeepSeek API error ${res.status}: ${errorText}`);
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const res = await fetch("https://api.deepseek.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        // If it's a 4xx error (client error like bad auth/prompt), do not retry
+        if (res.status >= 400 && res.status < 500 && res.status !== 429) {
+          throw new Error(`DeepSeek API Client Error ${res.status}: ${errorText}`);
+        }
+        throw new Error(`DeepSeek API error ${res.status}: ${errorText}`);
+      }
+
+      const data = await res.json();
+      return data.choices?.[0]?.message?.content || "";
+    } catch (error: any) {
+      lastError = error;
+      
+      // If it's a non-retriable client error, break immediately
+      if (error.message.includes("Client Error")) {
+        break;
+      }
+
+      if (attempt < maxRetries) {
+        const delay = baseDelay * attempt;
+        console.warn(`[DeepSeek API] Attempt ${attempt} failed: ${error.message}. Retrying in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
     }
-
-    const data = await res.json();
-    return data.choices?.[0]?.message?.content || "";
-  } catch (error: any) {
-    console.error("DeepSeek service query failed:", error);
-    throw new Error(error.message || "AI Service Unavailable. Please try again later.");
   }
+
+  console.error("DeepSeek service query failed after retries:", lastError);
+  console.warn("Falling back to localized mock completion due to AI service unavailability.");
+  return generateMockCompletion(systemPrompt, userPrompt);
 }

@@ -3,12 +3,12 @@
 import React, { useState, useEffect, useRef, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { db, auth } from "@/lib/firebase";
-import { doc, getDoc, collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
 import { postRoomMessageAction } from "@/actions/studyRooms";
 import { requestAiReviewAction } from "@/actions/requestAiReview";
 import { StudyRoom, StudyRoomMessage, AIReview } from "@/types";
 import AIReviewBox from "@/components/rooms/AIReviewBox";
-import { ArrowLeft, Send, MessageCircle, GraduationCap, AlertCircle, RefreshCw, PlusCircle, CheckCircle, Mic } from "lucide-react";
+import { ArrowLeft, Send, MessageCircle, GraduationCap, AlertCircle, RefreshCw, PlusCircle, CheckCircle, Mic, Copy, Check } from "lucide-react";
 import Link from "next/link";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { putOfflineItem, getOfflineItem } from "@/lib/indexedDb";
@@ -24,7 +24,6 @@ export default function RoomDetailPage() {
   
   // Form input state
   const [content, setContent] = useState("");
-  const [msgType, setMsgType] = useState<"question" | "answer">("question");
   const [replyTo, setReplyTo] = useState<StudyRoomMessage | null>(null);
 
   // Voice Hook
@@ -44,6 +43,15 @@ export default function RoomDetailPage() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isPending, startTransition] = useTransition();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyCode = () => {
+    if (room?.inviteCode) {
+      navigator.clipboard.writeText(room.inviteCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   // 1. Fetch Room Info
   useEffect(() => {
@@ -154,7 +162,7 @@ export default function RoomDetailPage() {
 
     setError(null);
     const textContent = content;
-    const targetType = replyTo ? "answer" : msgType;
+    const targetType = replyTo ? "answer" : "question";
     const parentId = replyTo?.id;
 
     setContent("");
@@ -176,7 +184,11 @@ export default function RoomDetailPage() {
     startTransition(async () => {
       const result = await requestAiReviewAction(roomId, msg.parentMessageId!, msg.id);
       if (result.success && result.review) {
-        setSelectedReview(result.review as AIReview);
+        const reviewData = result.review as any;
+        setSelectedReview({
+          ...reviewData,
+          createdAt: Timestamp.fromMillis(reviewData.createdAt)
+        } as AIReview);
       } else {
         setError(result.error || "AI Review request failed.");
       }
@@ -210,20 +222,26 @@ export default function RoomDetailPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-140px)] text-on-surface pb-4 relative">
       {/* Header action bar */}
-      <div className="flex items-center justify-between pb-3 border-b border-outline/10 mb-3 shrink-0">
-        <Link href="/dashboard/rooms" className="p-2 hover:bg-surface-variant/50 rounded-md border border-outline/10 bg-surface text-on-surface-variant">
+      <div className="flex items-start justify-between mb-3 shrink-0">
+        <Link href="/dashboard/rooms" className="mt-0.5 shrink-0 transition-colors text-on-surface-variant hover:text-primary">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <div className="text-center">
+        <div className="text-center flex flex-col items-center">
           <h3 className="text-title-medium font-bold text-primary truncate max-w-[200px]">{room?.name}</h3>
-          <span className="text-[10px] text-on-surface-variant/70">Code: {room?.inviteCode}</span>
+          <button 
+            onClick={handleCopyCode}
+            className="flex items-center gap-1.5 mt-0.5 text-[10px] text-on-surface-variant/80 bg-surface-variant/30 px-2 py-0.5 rounded hover:bg-surface-variant/60 transition-colors"
+          >
+            <span>Code: <span className="font-mono font-semibold">{room?.inviteCode}</span></span>
+            {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
+          </button>
         </div>
         <div className="w-9" />
       </div>
 
       {/* Floating AI Review overlay */}
       {selectedReview && (
-        <div className="absolute inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4">
           <div className="w-full max-w-sm max-h-[85vh] overflow-y-auto">
             <AIReviewBox review={selectedReview} onClose={() => setSelectedReview(null)} />
           </div>
@@ -336,46 +354,35 @@ export default function RoomDetailPage() {
 
       {/* Input container */}
       <form onSubmit={handleSendMessage} className="flex gap-2 mt-3 shrink-0">
-        {!replyTo && (
-          <select
-            value={msgType}
-            onChange={(e) => setMsgType(e.target.value as any)}
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder={replyTo ? "Write your peer answer..." : "Ask your group a question..."}
             disabled={isPending}
-            className="px-2 bg-surface border border-outline/30 rounded-md text-body-small font-semibold focus:outline-none shrink-0"
-          >
-            <option value="question">Question</option>
-            <option value="answer">Answer</option>
-          </select>
-        )}
-
-        {isVoiceSupported && (
-          <button
-            type="button"
-            onClick={toggleVoice}
-            disabled={isPending}
-            className={`p-3.5 rounded-md border shadow-1 transition-colors shrink-0 ${
-              isListening
-                ? "bg-error text-error-on border-error"
-                : "bg-surface text-on-surface border-outline/15 hover:bg-surface-variant/50"
-            }`}
-          >
-            <Mic className={`w-5 h-5 ${isListening ? "animate-pulse" : "text-primary"}`} />
-          </button>
-        )}
-
-        <input
-          type="text"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder={replyTo ? "Write your peer answer..." : msgType === "question" ? "Ask your group a question..." : "Post an answer..."}
-          disabled={isPending}
-          className="flex-1 px-3 py-3 bg-surface border border-outline/30 rounded-md text-body-medium focus:outline-none focus:border-primary"
-        />
+            className="w-full pl-3 pr-12 py-3 bg-surface border border-outline/30 rounded-md text-body-medium focus:outline-none focus:border-primary"
+          />
+          {isVoiceSupported && (
+            <button
+              type="button"
+              onClick={toggleVoice}
+              disabled={isPending}
+              className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors ${
+                isListening
+                  ? "bg-error text-error-on animate-pulse"
+                  : "text-outline hover:bg-surface-variant hover:text-primary"
+              }`}
+            >
+              <Mic className="w-5 h-5" />
+            </button>
+          )}
+        </div>
 
         <button
           type="submit"
           disabled={isPending || !content.trim()}
-          className="p-3.5 bg-primary text-primary-on rounded-md shadow-2 hover:opacity-95 disabled:opacity-50 transition-opacity"
+          className="aspect-square flex items-center justify-center bg-primary text-primary-on rounded-md shadow-2 hover:opacity-95 disabled:opacity-50 transition-opacity shrink-0"
         >
           {isPending ? (
             <RefreshCw className="w-5 h-5 animate-spin" />

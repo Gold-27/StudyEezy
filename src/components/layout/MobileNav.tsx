@@ -20,7 +20,19 @@ export default function MobileNav() {
       <div className="flex justify-around items-center h-16">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          let isActive = false;
+          if (item.href === "/dashboard") {
+            isActive = pathname === "/dashboard";
+          } else if (item.name === "Materials") {
+            isActive = 
+              pathname === "/dashboard/materials" || 
+              pathname.startsWith("/dashboard/materials/") ||
+              pathname.startsWith("/dashboard/summaries/") ||
+              pathname.startsWith("/dashboard/quizzes/") ||
+              pathname.startsWith("/dashboard/flashcards/");
+          } else {
+            isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          }
 
           return (
             <Link

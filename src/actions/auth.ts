@@ -40,7 +40,7 @@ export async function clearAuthSession() {
 /**
  * Creates user profile document in Firestore database upon initial sign up.
  */
-export async function createUserProfile(uid: string, name: string, email: string) {
+export async function createUserProfile(uid: string, name: string, email: string, emailVerified: boolean = false) {
   if (!adminDb) {
     console.warn("Firestore Admin database not initialized. Simulating user profile creation.");
     return { success: true };
@@ -55,7 +55,7 @@ export async function createUserProfile(uid: string, name: string, email: string
         id: uid,
         name,
         email,
-        emailVerified: false,
+        emailVerified,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       });

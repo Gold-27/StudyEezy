@@ -9,9 +9,10 @@ import Link from "next/link";
 
 interface EvaluationReportProps {
   attempt: QuizAttempt;
+  quiz?: any | null;
 }
 
-export default function EvaluationReport({ attempt }: EvaluationReportProps) {
+export default function EvaluationReport({ attempt, quiz }: EvaluationReportProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -137,6 +138,13 @@ export default function EvaluationReport({ attempt }: EvaluationReportProps) {
                   </span>
                 )}
               </div>
+
+              {/* Question Text */}
+              {quiz?.questions?.find((q: any) => q.id === ans.questionId)?.question && (
+                <div className="text-body-medium font-semibold text-on-surface leading-snug">
+                  {quiz.questions.find((q: any) => q.id === ans.questionId).question}
+                </div>
+              )}
 
               {/* User Answer vs Correct Answer */}
               <div className="flex flex-col gap-2 bg-surface-variant/30 p-3 rounded-md border border-outline/5 text-body-medium">

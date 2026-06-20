@@ -20,3 +20,35 @@ body {
 input, button, select, textarea {
   font-family: inherit;
 }
+
+@layer base {
+  button:not(:disabled) {
+    @apply transition-all duration-200 cursor-pointer;
+  }
+  
+  button:not(:disabled):hover {
+    @apply opacity-85 shadow-sm;
+  }
+  
+  button:not(:disabled):active {
+    @apply scale-[0.98] shadow-none;
+  }
+}
+
+@layer utilities {
+  .text-body-large { font: var(--sys-font-body-body-large); }
+  .text-body-medium { font: var(--sys-font-body-body-medium); }
+  .text-body-small { font: var(--sys-font-body-body-small); }
+  .text-display-large { font: var(--sys-font-display-display-large); }
+  .text-display-medium { font: var(--sys-font-display-display-medium); }
+  .text-display-small { font: var(--sys-font-display-display-small); }
+  .text-headline-large { font: var(--sys-font-headline-headline-large); }
+  .text-headline-medium { font: var(--sys-font-headline-headline-medium); }
+  .text-headline-small { font: var(--sys-font-headline-headline-small); }
+  .text-label-large { font: var(--sys-font-label-label-large); }
+  .text-label-medium { font: var(--sys-font-label-label-medium); }
+  .text-label-small { font: var(--sys-font-label-label-small); }
+  .text-title-large { font: var(--sys-font-title-title-large); }
+  .text-title-medium { font: var(--sys-font-title-title-medium); }
+  .text-title-small { font: var(--sys-font-title-title-small); }
+}

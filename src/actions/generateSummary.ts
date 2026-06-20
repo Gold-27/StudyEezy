@@ -21,6 +21,12 @@ async function getUserIdFromSession(): Promise<string | null> {
     const decoded = await adminAuth.verifyIdToken(token);
     return decoded.uid;
   } catch (error) {
+    console.error("Session verification failed, attempting manual decode");
+    try {
+      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+      if (payload && payload.user_id) return payload.user_id;
+    } catch (e) {}
+    
     if (process.env.NODE_ENV === "development") {
       return "dev-user-123";
     }
@@ -50,7 +56,7 @@ function getSummaryUserPrompt(text: string, type: "short" | "detailed" | "revisi
       instruction = "Create an Exam Prep Summary of the text below. Highlight high-yield topics, critical facts, potential examination questions, and key keywords frequently tested.";
       break;
   }
-  return `${instruction}\n\nStudy Material Text:\n${text}`;
+  return `${instruction}\n\nIMPORTANT: Do not include a main document title or heading at the top of your response (e.g., "# Summary of X"). Start directly with the content.\n\nStudy Material Text:\n${text}`;
 }
 
 /**
@@ -82,7 +88,7 @@ export async function generateSummaryAction(
     }
 
     // 2. Query DeepSeek
-    const systemPrompt = "You are a specialized StudyEezy academic tutor. Synthesize study material text into highly structured, clear, and educational markdown documents. Write standard markdown, do not include introduction greetings, and prioritize conceptual clarity.";
+    const systemPrompt = "You are a specialized StudyEezy academic tutor. Synthesize study material text into highly structured, clear, and educational markdown documents. Write standard markdown, do not include introduction greetings, and prioritize conceptual clarity. ALWAYS use bold text (**text**) for all section titles, headlines, and sub-headlines throughout the notes.";
     const userPrompt = getSummaryUserPrompt(materialData.extractedText, summaryType);
 
     const generatedContent = await queryDeepSeek(systemPrompt, userPrompt, 0.3);

@@ -14,9 +14,24 @@ export default function CreateSummaryForm() {
   const materialId = searchParams.get("materialId");
 
   const [materialTitle, setMaterialTitle] = useState("Loading document...");
-  const [summaryType, setSummaryType] = useState<"short" | "detailed" | "revision" | "keyConcepts" | "examPrep">("short");
+  const [summaryType, setSummaryType] = useState<"short" | "detailed" | "revision" | "keyConcepts" | "examPrep">(() => {
+    const typeFromUrl = searchParams.get("type");
+    if (["short", "detailed", "revision", "keyConcepts", "examPrep"].includes(typeFromUrl as string)) {
+      return typeFromUrl as any;
+    }
+    return "short";
+  });
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // Persist the selected type in the URL so it survives "back" navigation
+  useEffect(() => {
+    if (materialId && searchParams.get("type") !== summaryType) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("type", summaryType);
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
+  }, [summaryType, materialId, router, searchParams]);
 
   useEffect(() => {
     if (!materialId) {
@@ -68,9 +83,9 @@ export default function CreateSummaryForm() {
 
   return (
     <div className="flex flex-col gap-6 text-on-surface">
-      <div className="flex items-center gap-2">
-        <Link href="/dashboard/materials" className="p-2 hover:bg-surface-variant/50 rounded-md">
-          <ArrowLeft className="w-5 h-5 text-on-surface-variant" />
+      <div className="flex items-start gap-3">
+        <Link href="/dashboard/materials" className="-ml-1.5 mt-1 shrink-0 transition-colors">
+          <ArrowLeft className="w-5 h-5 text-on-surface-variant hover:text-primary" />
         </Link>
         <div>
           <h2 className="text-headline-small font-semibold">Generate Summary</h2>

@@ -194,34 +194,35 @@ export default function ChatPage() {
 
       {/* Input Form */}
       <form onSubmit={handleSendMessage} className="flex gap-2 mt-4 shrink-0">
-        {isVoiceSupported && (
-          <button
-            type="button"
-            onClick={toggleVoice}
+        <div className="flex-1 relative">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={isOnline ? "Ask about photosynthesis, mitosis..." : "Connect online to start chatting..."}
             disabled={!isOnline || isPending}
-            className={`p-3.5 rounded-md border shadow-1 transition-colors shrink-0 ${
-              isListening
-                ? "bg-error text-error-on border-error"
-                : "bg-surface text-on-surface border-outline/15 hover:bg-surface-variant/50"
-            }`}
-          >
-            <Mic className={`w-5 h-5 ${isListening ? "animate-pulse" : "text-primary"}`} />
-          </button>
-        )}
-
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={isOnline ? "Ask about photosynthesis, mitosis..." : "Connect online to start chatting..."}
-          disabled={!isOnline || isPending}
-          className="flex-1 px-3 py-3 bg-surface border border-outline/30 rounded-md text-body-medium focus:outline-none focus:border-primary disabled:opacity-50"
-        />
+            className="w-full pl-3 pr-12 py-3 bg-surface border border-outline/30 rounded-md text-body-medium focus:outline-none focus:border-primary disabled:opacity-50"
+          />
+          {isVoiceSupported && (
+            <button
+              type="button"
+              onClick={toggleVoice}
+              disabled={!isOnline || isPending}
+              className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors ${
+                isListening
+                  ? "bg-error text-error-on animate-pulse"
+                  : "text-outline hover:bg-surface-variant hover:text-primary"
+              }`}
+            >
+              <Mic className="w-5 h-5" />
+            </button>
+          )}
+        </div>
 
         <button
           type="submit"
           disabled={!isOnline || isPending || !input.trim()}
-          className="p-3.5 bg-primary text-primary-on rounded-md shadow-2 hover:opacity-95 disabled:opacity-50 transition-opacity"
+          className="aspect-square flex items-center justify-center bg-primary text-primary-on rounded-md shadow-2 hover:opacity-95 disabled:opacity-50 transition-opacity shrink-0"
         >
           {isPending ? (
             <RefreshCw className="w-5 h-5 animate-spin" />

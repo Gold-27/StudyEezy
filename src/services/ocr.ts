@@ -14,7 +14,29 @@ function signJwt(payload: any, privateKey: string, clientEmail: string): string 
   
   const signer = crypto.createSign("RSA-SHA256");
   signer.update(signInput);
-  const signature = signer.sign(privateKey, "base64url");
+
+  let formattedPrivateKey = privateKey;
+  if (formattedPrivateKey.startsWith('"') && formattedPrivateKey.endsWith('"')) {
+    formattedPrivateKey = formattedPrivateKey.slice(1, -1);
+  } else if (formattedPrivateKey.startsWith("'") && formattedPrivateKey.endsWith("'")) {
+    formattedPrivateKey = formattedPrivateKey.slice(1, -1);
+  }
+  formattedPrivateKey = formattedPrivateKey.replace(/\\n/g, "\n");
+  formattedPrivateKey = formattedPrivateKey.replace(/\r/g, "");
+
+  if (!formattedPrivateKey.includes("\n")) {
+    formattedPrivateKey = formattedPrivateKey
+      .replace("-----BEGIN PRIVATE KEY-----", "-----BEGIN PRIVATE KEY-----\n")
+      .replace("-----END PRIVATE KEY-----", "\n-----END PRIVATE KEY-----");
+    
+    const parts = formattedPrivateKey.split("\n");
+    if (parts.length === 3) {
+      parts[1] = parts[1].replace(/ /g, "\n");
+      formattedPrivateKey = parts.join("\n");
+    }
+  }
+
+  const signature = signer.sign(formattedPrivateKey, "base64url");
   
   return `${signInput}.${signature}`;
 }

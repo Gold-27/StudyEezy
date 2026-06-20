@@ -15,6 +15,7 @@ export default function QuizEvaluationPage() {
   const attemptId = params.attemptId as string;
 
   const [attempt, setAttempt] = useState<QuizAttempt | null>(null);
+  const [quiz, setQuiz] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,11 +34,31 @@ export default function QuizEvaluationPage() {
           } catch (e) {
             console.warn("Failed to cache quiz attempt offline in IndexedDB:", e);
           }
+          
+          // Fetch parent quiz to get question texts
+          try {
+            const quizDocRef = doc(db, "quizzes", fetchedAttempt.quizId);
+            const quizDocSnap = await getDoc(quizDocRef);
+            if (quizDocSnap.exists()) {
+              const fetchedQuiz = { id: quizDocSnap.id, ...quizDocSnap.data() };
+              setQuiz(fetchedQuiz);
+              await putOfflineItem("quizzes", fetchedQuiz);
+            } else {
+              const cachedQuiz = await getOfflineItem("quizzes", fetchedAttempt.quizId);
+              if (cachedQuiz) setQuiz(cachedQuiz);
+            }
+          } catch (quizErr) {
+            console.warn("Failed to fetch parent quiz, checking cache:", quizErr);
+            const cachedQuiz = await getOfflineItem("quizzes", fetchedAttempt.quizId);
+            if (cachedQuiz) setQuiz(cachedQuiz);
+          }
         } else {
           // Check local IndexedDB fallback
           const cached = await getOfflineItem("attempts", attemptId);
           if (cached) {
             setAttempt(cached);
+            const cachedQuiz = await getOfflineItem("quizzes", cached.quizId);
+            if (cachedQuiz) setQuiz(cachedQuiz);
           } else {
             setError("This quiz attempt records could not be found.");
           }
@@ -48,6 +69,8 @@ export default function QuizEvaluationPage() {
           const cached = await getOfflineItem("attempts", attemptId);
           if (cached) {
             setAttempt(cached);
+            const cachedQuiz = await getOfflineItem("quizzes", cached.quizId);
+            if (cachedQuiz) setQuiz(cachedQuiz);
           } else {
             setError("Error loading quiz attempt details. You appear to be offline and this content is not cached.");
           }
@@ -85,5 +108,5 @@ export default function QuizEvaluationPage() {
     );
   }
 
-  return <EvaluationReport attempt={attempt} />;
+  return <EvaluationReport attempt={attempt} quiz={quiz} />;
 }

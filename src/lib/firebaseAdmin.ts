@@ -7,12 +7,40 @@ if (!admin.apps.length) {
 
   if (projectId && clientEmail && privateKey) {
     try {
+      let formattedPrivateKey = privateKey;
+      // 1. Remove surrounding quotes if they exist
+      if (formattedPrivateKey.startsWith('"') && formattedPrivateKey.endsWith('"')) {
+        formattedPrivateKey = formattedPrivateKey.slice(1, -1);
+      } else if (formattedPrivateKey.startsWith("'") && formattedPrivateKey.endsWith("'")) {
+        formattedPrivateKey = formattedPrivateKey.slice(1, -1);
+      }
+      
+      // 2. Replace literal \n with actual newlines
+      formattedPrivateKey = formattedPrivateKey.replace(/\\n/g, "\n");
+
+      // 2.5 Remove carriage returns which can break OpenSSL
+      formattedPrivateKey = formattedPrivateKey.replace(/\r/g, "");
+
+      // 3. If it was pasted without quotes, it might just be space separated
+      if (!formattedPrivateKey.includes("\n")) {
+        formattedPrivateKey = formattedPrivateKey
+          .replace("-----BEGIN PRIVATE KEY-----", "-----BEGIN PRIVATE KEY-----\n")
+          .replace("-----END PRIVATE KEY-----", "\n-----END PRIVATE KEY-----");
+        
+        const parts = formattedPrivateKey.split("\n");
+        if (parts.length === 3) {
+          parts[1] = parts[1].replace(/ /g, "\n");
+          formattedPrivateKey = parts.join("\n");
+        }
+      }
+
       admin.initializeApp({
         credential: admin.credential.cert({
           projectId,
           clientEmail,
-          privateKey: privateKey.replace(/\\n/g, "\n"),
+          privateKey: formattedPrivateKey,
         }),
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
       });
     } catch (error) {
       console.error("Firebase Admin initialization failed:", error);

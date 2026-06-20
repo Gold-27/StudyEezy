@@ -27,10 +27,6 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(verifyUrl);
       }
     } else {
-      // If verified user tries to access Auth screen (except verify checking), redirect to Dashboard
-      if (isAuthPage && request.nextUrl.searchParams.get("mode") !== "verify") {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-      }
     }
   }
 

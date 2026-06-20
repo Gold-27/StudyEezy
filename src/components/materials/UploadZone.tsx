@@ -186,12 +186,12 @@ export default function UploadZone({ onUploadSuccess }: UploadZoneProps) {
                 />
               </label>
 
-              <div className="text-center text-body-small text-on-surface-variant/50">— OR —</div>
+              <div className="text-center text-body-small text-on-surface-variant/50 lg:hidden">— OR —</div>
 
               <button
                 type="button"
                 onClick={startCamera}
-                className="w-full py-3 bg-surface-variant text-on-surface-variant font-semibold rounded-md border border-outline/20 flex items-center justify-center gap-2 hover:bg-surface-variant/90 transition-colors"
+                className="w-full py-3 bg-surface-variant text-on-surface-variant font-semibold rounded-md border border-outline/20 flex items-center justify-center gap-2 hover:bg-surface-variant/90 transition-colors lg:hidden"
               >
                 <Camera className="w-5 h-5 text-primary" /> Take Picture of Notes
               </button>

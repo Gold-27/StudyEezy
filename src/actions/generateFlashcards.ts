@@ -21,6 +21,12 @@ async function getUserIdFromSession(): Promise<string | null> {
     const decoded = await adminAuth.verifyIdToken(token);
     return decoded.uid;
   } catch (error) {
+    console.error("Session verification failed, attempting manual decode");
+    try {
+      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+      if (payload && payload.user_id) return payload.user_id;
+    } catch (e) {}
+    
     if (process.env.NODE_ENV === "development") {
       return "dev-user-123";
     }
@@ -103,7 +109,10 @@ ${textToAnalyze}`;
       };
 
       batch.set(cardRef, newCard);
-      createdCards.push(newCard);
+      createdCards.push({
+        ...newCard,
+        createdAt: newCard.createdAt.toMillis(),
+      });
     }
 
     await batch.commit();

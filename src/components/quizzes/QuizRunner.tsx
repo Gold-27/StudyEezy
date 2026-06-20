@@ -1,4 +1,5 @@
 "use client";
+// Force HMR reload 2
 
 import React, { useState, useTransition, useCallback, useEffect } from "react";
 import { Quiz } from "@/types";
@@ -148,27 +149,27 @@ export default function QuizRunner({ quiz }: QuizRunnerProps) {
               ))}
             </div>
           ) : currentQuestion?.type === "shortAnswer" ? (
-            <div className="flex gap-2">
+            <div className="relative w-full">
               <input
                 type="text"
                 value={currentAnswer}
                 onChange={(e) => handleTextChange(e.target.value)}
                 disabled={isPending}
                 placeholder="Type your answer here..."
-                className="flex-1 px-3 py-3 bg-surface border border-outline/30 rounded-md text-body-medium focus:outline-none focus:border-primary disabled:opacity-50"
+                className="w-full pl-3 pr-12 py-3 bg-surface border border-outline/30 rounded-md text-body-medium focus:outline-none focus:border-primary disabled:opacity-50"
               />
               {isVoiceSupported && (
                 <button
                   type="button"
                   onClick={() => isListening ? stopListening() : startListening()}
                   disabled={isPending}
-                  className={`p-3.5 rounded-md border shadow-1 transition-colors shrink-0 ${
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-colors ${
                     isListening
-                      ? "bg-error text-error-on border-error"
-                      : "bg-surface text-on-surface border-outline/15 hover:bg-surface-variant/50"
+                      ? "bg-error text-error-on animate-pulse"
+                      : "text-outline hover:bg-surface-variant hover:text-primary"
                   }`}
                 >
-                  <Mic className={`w-5 h-5 ${isListening ? "animate-pulse" : "text-primary"}`} />
+                  <Mic className="w-5 h-5" />
                 </button>
               )}
             </div>
@@ -205,11 +206,11 @@ export default function QuizRunner({ quiz }: QuizRunnerProps) {
       </section>
 
       {/* Navigation Controls */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-stretch justify-between gap-4">
         <button
           onClick={handlePrev}
           disabled={currentIndex === 0 || isPending}
-          className="p-3 bg-surface hover:bg-surface-variant/50 border border-outline/15 rounded-md shadow-1 disabled:opacity-30 disabled:hover:bg-surface"
+          className="p-3 flex items-center justify-center bg-surface hover:bg-surface-variant/50 border border-outline/15 rounded-md shadow-1 disabled:opacity-30 disabled:hover:bg-surface"
         >
           <ChevronLeft className="w-5 h-5 text-on-surface-variant" />
         </button>
@@ -234,7 +235,7 @@ export default function QuizRunner({ quiz }: QuizRunnerProps) {
             disabled={isPending}
             className="flex-1 py-3 px-4 bg-surface hover:bg-surface-variant/50 border border-outline/15 text-on-surface rounded-md shadow-1 font-semibold text-body-medium flex items-center justify-center gap-2"
           >
-            Next Question <ChevronRight className="w-4 h-4" />
+            Next Question <ChevronRight className="w-4 h-4 mt-0.5" />
           </button>
         )}
       </div>

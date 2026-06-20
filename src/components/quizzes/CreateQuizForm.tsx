@@ -1,4 +1,5 @@
 "use client";
+// Force HMR reload
 
 import React, { useState, useEffect, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -77,9 +78,9 @@ export default function CreateQuizForm() {
 
   return (
     <div className="flex flex-col gap-6 text-on-surface">
-      <div className="flex items-center gap-2">
-        <Link href="/dashboard/materials" className="p-2 hover:bg-surface-variant/50 rounded-md">
-          <ArrowLeft className="w-5 h-5 text-on-surface-variant" />
+      <div className="flex items-start gap-3">
+        <Link href="/dashboard/materials" className="-ml-1.5 mt-1 shrink-0 transition-colors">
+          <ArrowLeft className="w-5 h-5 text-on-surface-variant hover:text-primary" />
         </Link>
         <div>
           <h2 className="text-headline-small font-semibold">Generate Quiz</h2>
@@ -98,37 +99,59 @@ export default function CreateQuizForm() {
         <form onSubmit={handleGenerate} className="flex flex-col gap-5 bg-surface p-5 rounded-lg border border-outline/10 shadow-1">
           {/* Question Type */}
           <div>
-            <label className="block text-label-large font-semibold mb-2">Question Type</label>
-            <select
-              value={questionType}
-              onChange={(e) => setQuestionType(e.target.value as any)}
-              className="w-full px-3 py-2 bg-surface border border-outline/30 rounded-md text-body-medium focus:outline-none focus:border-primary"
-            >
-              <option value="mixed">Mixed Types</option>
-              <option value="mcq">Multiple Choice (MCQ)</option>
-              <option value="shortAnswer">Short Answer</option>
-              <option value="theory">Theory (subjective response)</option>
-            </select>
+            <label className="block text-title-medium font-semibold mb-2">Question Type</label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: "mixed", label: "Mixed Types" },
+                { value: "mcq", label: "Multiple Choice" },
+                { value: "shortAnswer", label: "Short Answer" },
+                { value: "theory", label: "Theory" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setQuestionType(opt.value as any)}
+                  className={`py-2 px-2 text-body-medium font-semibold rounded-md border transition-colors ${
+                    questionType === opt.value
+                      ? "bg-primary text-primary-on border-primary shadow-1"
+                      : "bg-surface text-outline border-outline/30 hover:border-outline/50 hover:text-on-surface-variant"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Difficulty */}
           <div>
-            <label className="block text-label-large font-semibold mb-2">Difficulty Level</label>
-            <select
-              value={difficulty}
-              onChange={(e) => setDifficulty(e.target.value as any)}
-              className="w-full px-3 py-2 bg-surface border border-outline/30 rounded-md text-body-medium focus:outline-none focus:border-primary"
-            >
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-              <option value="mixed">Mixed Difficulty</option>
-            </select>
+            <label className="block text-title-medium font-semibold mb-2">Difficulty Level</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { value: "easy", label: "Easy" },
+                { value: "medium", label: "Medium" },
+                { value: "hard", label: "Hard" },
+                { value: "mixed", label: "Mixed" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setDifficulty(opt.value as any)}
+                  className={`py-2 px-1 text-body-medium font-semibold rounded-md border transition-colors ${
+                    difficulty === opt.value
+                      ? "bg-primary text-primary-on border-primary shadow-1"
+                      : "bg-surface text-outline border-outline/30 hover:border-outline/50 hover:text-on-surface-variant"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Question Count */}
           <div>
-            <label className="block text-label-large font-semibold mb-2">Number of Questions</label>
+            <label className="block text-title-medium font-semibold mb-2">Number of Questions</label>
             <div className="grid grid-cols-4 gap-2 mb-3">
               {countOptions.map((count) => (
                 <button
@@ -137,8 +160,8 @@ export default function CreateQuizForm() {
                   onClick={() => setQuestionCount(count)}
                   className={`py-2 text-body-medium font-semibold rounded-md border transition-colors ${
                     questionCount === count
-                      ? "bg-primary text-primary-on border-primary"
-                      : "bg-surface text-on-surface border-outline/30 hover:border-outline/50"
+                      ? "bg-primary text-primary-on border-primary shadow-1"
+                      : "bg-surface text-outline border-outline/30 hover:border-outline/50 hover:text-on-surface-variant"
                   }`}
                 >
                   {count}

@@ -1,9 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 export function useVoiceInput(onTranscript: (text: string) => void) {
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const onTranscriptRef = useRef(onTranscript);
+
+  useEffect(() => {
+    onTranscriptRef.current = onTranscript;
+  }, [onTranscript]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -25,7 +31,9 @@ export function useVoiceInput(onTranscript: (text: string) => void) {
         };
         rec.onresult = (event: any) => {
           const resultText = event.results[0][0].transcript;
-          onTranscript(resultText);
+          if (onTranscriptRef.current) {
+            onTranscriptRef.current(resultText);
+          }
         };
 
         setRecognition(rec);
@@ -33,7 +41,7 @@ export function useVoiceInput(onTranscript: (text: string) => void) {
         setError("Web Speech API not supported in this browser");
       }
     }
-  }, [onTranscript]);
+  }, []);
 
   const startListening = useCallback(() => {
     if (recognition) {

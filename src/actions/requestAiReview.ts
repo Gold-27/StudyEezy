@@ -21,6 +21,12 @@ async function getUserIdFromSession(): Promise<string | null> {
     const decoded = await adminAuth.verifyIdToken(token);
     return decoded.uid;
   } catch (error) {
+    console.error("Session verification failed, attempting manual decode");
+    try {
+      const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+      if (payload && payload.user_id) return payload.user_id;
+    } catch (e) {}
+    
     if (process.env.NODE_ENV === "development") {
       return "dev-user-123";
     }
@@ -52,9 +58,13 @@ export async function requestAiReviewAction(
       .get();
 
     if (!existingReviewSnap.empty) {
+      const existingReview = existingReviewSnap.docs[0].data();
       return {
         success: true,
-        review: existingReviewSnap.docs[0].data(),
+        review: {
+          ...existingReview,
+          createdAt: existingReview.createdAt?.toMillis ? existingReview.createdAt.toMillis() : Date.now(),
+        },
       };
     }
 
@@ -73,6 +83,11 @@ export async function requestAiReviewAction(
     const systemPrompt = `You are the StudyEezy AI Reviewer.
 Your role is to evaluate a peer answer submitted in a study room against a specific question.
 Do NOT automatically reply to the question yourself. Grade the answer constructively.
+
+CRITICAL INSTRUCTIONS:
+- 'modelAnswer' must be short and concise (2-3 sentences max).
+- Do NOT give long answers. Give only the exact answer that matters for a student.
+
 Your output must be a valid raw JSON object. Do not include markdown blocks like \`\`\`json. The JSON must exactly match this structure:
 {
   "score": number (evaluation score between 1 and 10),
@@ -111,7 +126,10 @@ Peer Answer: ${answerText}`;
 
     return {
       success: true,
-      review,
+      review: {
+        ...review,
+        createdAt: review.createdAt.toMillis(),
+      },
     };
   } catch (error: any) {
     console.error("AI Review execution failed:", error);

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useTransition } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { db, auth } from "@/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
 import { generateFlashcardsAction } from "@/actions/generateFlashcards";
 import { putOfflineItem } from "@/lib/indexedDb";
 import { Flashcard } from "@/types";
@@ -70,9 +70,14 @@ export default function CreateFlashcardsRunner() {
         startTransition(async () => {
           const result = await generateFlashcardsAction(sourceType, sourceId);
           if (result.success && result.cards) {
-            setCards(result.cards as Flashcard[]);
+            const hydratedCards = result.cards.map((c: any) => ({
+              ...c,
+              createdAt: Timestamp.fromMillis(c.createdAt),
+            })) as Flashcard[];
+
+            setCards(hydratedCards);
             // Cache locally
-            for (const card of result.cards) {
+            for (const card of hydratedCards) {
               await putOfflineItem("flashcards", card);
             }
           } else {
@@ -118,13 +123,10 @@ export default function CreateFlashcardsRunner() {
 
   return (
     <div className="flex flex-col gap-6 pb-8 text-on-surface">
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => router.back()}
-          className="p-2 hover:bg-surface-variant/50 rounded-md border border-outline/10 bg-surface text-on-surface-variant"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
+      <div className="flex items-start gap-3">
+        <Link href="/dashboard/materials" className="-ml-1.5 mt-1 shrink-0 transition-colors">
+          <ArrowLeft className="w-5 h-5 text-on-surface-variant hover:text-primary" />
+        </Link>
         <div>
           <h2 className="text-headline-small font-semibold">Active Recall Flashcards</h2>
           <p className="text-body-small text-on-surface-variant/80">
