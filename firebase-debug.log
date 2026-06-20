@@ -5801,3 +5801,73 @@ INFO: Detected non-HTTP/2 connection.
 [debug] [2026-06-20T13:17:32.895Z] Jun 20, 2026 2:17:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
 INFO: Detected non-HTTP/2 connection.
  {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:17:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:18:32.930Z] Jun 20, 2026 2:18:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:18:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:19:32.953Z] Jun 20, 2026 2:19:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:19:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:20:32.969Z] Jun 20, 2026 2:20:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:20:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:21:33.001Z] Jun 20, 2026 2:21:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:21:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:22:33.048Z] Jun 20, 2026 2:22:33 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:22:33 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[info] i  firestore: Change detected, updating rules... 
+[debug] [2026-06-20T13:23:25.654Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/demo-no-project:securityRules [none]
+[debug] [2026-06-20T13:23:25.658Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/demo-no-project:securityRules {"ignore_errors":true,"rules":{"files":[{"name":"security.rules","content":"rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    \n    // Helper Functions\n    function isAuthenticated() {\n      return request.auth != null;\n    }\n    \n    function isOwner(userId) {\n      return isAuthenticated() && request.auth.uid == userId;\n    }\n    \n    function isDocOwner() {\n      return isAuthenticated() && resource.data.userId == request.auth.uid;\n    }\n    \n    function isCreatingOwnDoc() {\n      return isAuthenticated() && request.resource.data.userId == request.auth.uid;\n    }\n\n    // 1. Users\n    match /users/{userId} {\n      allow read, write: if isOwner(userId);\n    }\n    \n    // 2. Personal Content (Materials, Summaries, Flashcards, Quizzes, Attempts, Chat Sessions)\n    match /studyMaterials/{docId} { allow read, update, delete: if isDocOwner(); allow create: if isCreatingOwnDoc(); }\n    match /summaries/{docId} { allow read, update, delete: if isDocOwner(); allow create: if isCreatingOwnDoc(); }\n    match /flashcards/{docId} { allow read, update, delete: if isDocOwner(); allow create: if isCreatingOwnDoc(); }\n    match /quizzes/{docId} { allow read, update, delete: if isDocOwner(); allow create: if isCreatingOwnDoc(); }\n    match /quizAttempts/{docId} { allow read, update, delete: if isDocOwner(); allow create: if isCreatingOwnDoc(); }\n    match /chatSessions/{docId} { allow read, update, delete: if isDocOwner(); allow create: if isCreatingOwnDoc(); }\n    \n    // 3. Chat Messages (Requires parent session check)\n    match /chatMessages/{messageId} {\n      allow read, update, delete: if isAuthenticated() && get(/databases/$(database)/documents/chatSessions/$(resource.data.sessionId)).data.userId == request.auth.uid;\n      allow create: if isAuthenticated() && get(/databases/$(database)/documents/chatSessions/$(request.resource.data.sessionId)).data.userId == request.auth.uid;\n    }\n    \n    // 4. Study Rooms (Collaborative)\n    match /studyRooms/{roomId} {\n      allow read: if isAuthenticated();\n      allow create: if isAuthenticated() && request.resource.data.ownerId == request.auth.uid;\n      allow update, delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;\n    }\n    \n    match /studyRoomMembers/{membershipId} {\n      allow read: if isAuthenticated();\n      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;\n      allow update, delete: if isAuthenticated() && (\n        resource.data.userId == request.auth.uid || \n        get(/databases/$(database)/documents/studyRooms/$(resource.data.roomId)).data.ownerId == request.auth.uid\n      );\n    }\n    \n    match /studyRoomMessages/{messageId} {\n      allow read: if isAuthenticated();\n      allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;\n      allow update, delete: if isAuthenticated() && resource.data.senderId == request.auth.uid;\n    }\n    \n    match /aiReviews/{reviewId} {\n      allow read: if isAuthenticated();\n      allow create, update, delete: if isAuthenticated(); // Allows any authenticated user to request/read AI reviews in rooms\n    }\n    \n    // Catch-all: Deny any access not explicitly allowed above\n    match /{document=**} {\n      allow read, write: if false;\n    }\n  }\n}\n"}]}}
+[debug] [2026-06-20T13:23:25.799Z] Jun 20, 2026 2:23:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:23:25 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:23:28.236Z] Jun 20, 2026 2:23:28 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:23:28 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:23:29.905Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/demo-no-project:securityRules 200
+[debug] [2026-06-20T13:23:29.906Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/demo-no-project:securityRules {}
+[info] +  firestore: Rules updated. 
+[debug] [2026-06-20T13:23:33.083Z] Jun 20, 2026 2:23:33 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:23:33 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:24:33.114Z] Jun 20, 2026 2:24:33 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:24:33 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:25:33.150Z] Jun 20, 2026 2:25:33 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:25:33 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:26:33.186Z] Jun 20, 2026 2:26:33 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:26:33 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:27:33.230Z] Jun 20, 2026 2:27:33 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:27:33 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:28:32.820Z] Jun 20, 2026 2:28:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:28:32 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:28:36.198Z] Jun 20, 2026 2:28:36 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:28:36 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:28:36.537Z] Multiple projectIds are not recommended in single project mode. Requested project ID studyeezy-4eb9d, but the emulator is configured for demo-no-project. To opt-out of single project mode add/set the '"singleProjectMode": false' property in the firebase.json emulators config.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Multiple projectIds are not recommended in single project mode. Requested project ID studyeezy-4eb9d, but the emulator is configured for demo-no-project. To opt-out of single project mode add/set the '\"singleProjectMode\": false' property in the firebase.json emulators config.\r\n"}}
+[debug] [2026-06-20T13:28:36.598Z] Jun 20, 2026 2:28:36 PM com.google.cloud.datastore.emulator.impl.context.EmulatorAuthorization warnAboutSecuredJwt
+WARNING: expected an unsecured JWT, the emulator does not validate JWTs and IS NOT SECURE
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:28:36 PM com.google.cloud.datastore.emulator.impl.context.EmulatorAuthorization warnAboutSecuredJwt\r\nWARNING: expected an unsecured JWT, the emulator does not validate JWTs and IS NOT SECURE\r\n"}}
+[debug] [2026-06-20T13:28:36.605Z] Multiple projectIds are not recommended in single project mode. Requested project ID studyeezy-4eb9d, but the emulator is configured for demo-no-project. To opt-out of single project mode add/set the '"singleProjectMode": false' property in the firebase.json emulators config.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Multiple projectIds are not recommended in single project mode. Requested project ID studyeezy-4eb9d, but the emulator is configured for demo-no-project. To opt-out of single project mode add/set the '\"singleProjectMode\": false' property in the firebase.json emulators config.\r\n"}}
+[debug] [2026-06-20T13:28:37.034Z] Jun 20, 2026 2:28:37 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:28:37 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:28:37.088Z] Jun 20, 2026 2:28:37 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:28:37 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:29:37.148Z] Jun 20, 2026 2:29:37 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:29:37 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:29:37.956Z] Jun 20, 2026 2:29:37 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:29:37 PM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\r\nINFO: Detected non-HTTP/2 connection.\r\n"}}
+[debug] [2026-06-20T13:29:37.975Z] Jun 20, 2026 2:29:37 PM com.google.cloud.datastore.emulator.firestore.webchannel.FirestoreV1WebChannelAdapter$FirestoreListenHandler onClose
+INFO: channel closed
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Jun 20, 2026 2:29:37 PM com.google.cloud.datastore.emulator.firestore.webchannel.FirestoreV1WebChannelAdapter$FirestoreListenHandler onClose\r\nINFO: channel closed\r\n"}}
