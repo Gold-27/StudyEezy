@@ -77,14 +77,14 @@ export default async function DashboardPage() {
         ]);
 
         recentMaterials = materialsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).slice(0, 3);
+          .sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).slice(0, 3);
           
         recentSummaries = summariesSnap.docs.map(d => ({ id: d.id, ...d.data() }))
-          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).slice(0, 3);
+          .sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)).slice(0, 3);
           
         recentAttempts = await Promise.all(
           attemptsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
-            .sort((a, b) => (b.submittedAt?.seconds || 0) - (a.submittedAt?.seconds || 0))
+            .sort((a: any, b: any) => (b.submittedAt?.seconds || 0) - (a.submittedAt?.seconds || 0))
             .slice(0, 3)
             .map(async (attempt: any) => {
                const qDoc = await adminDb.collection("quizzes").doc(attempt.quizId).get();
