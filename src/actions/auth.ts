@@ -40,13 +40,16 @@ export async function clearAuthSession() {
 /**
  * Creates user profile document in Firestore database upon initial sign up.
  */
-export async function createUserProfile(uid: string, name: string, email: string, emailVerified: boolean = false) {
-  if (!adminDb) {
+export async function createUserProfile(idToken: string, name: string, email: string, emailVerified: boolean = false) {
+  if (!adminAuth || !adminDb) {
     console.warn("Firestore Admin database not initialized. Simulating user profile creation.");
     return { success: true };
   }
 
   try {
+    const decodedToken = await adminAuth.verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+
     const userRef = adminDb.collection("users").doc(uid);
     const userDoc = await userRef.get();
 
@@ -70,8 +73,8 @@ export async function createUserProfile(uid: string, name: string, email: string
 /**
  * Updates firestore profile and session cookies once email verification is successful.
  */
-export async function updateUserVerification(uid: string) {
-  if (!adminDb) {
+export async function updateUserVerification(idToken: string) {
+  if (!adminAuth || !adminDb) {
     console.warn("Firestore Admin database not initialized. Simulating email verification update.");
     const cookieStore = await cookies();
     cookieStore.set("email_verified", "true", {
@@ -84,6 +87,9 @@ export async function updateUserVerification(uid: string) {
   }
   
   try {
+    const decodedToken = await adminAuth.verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+
     const userRef = adminDb.collection("users").doc(uid);
     await userRef.update({
       emailVerified: true,

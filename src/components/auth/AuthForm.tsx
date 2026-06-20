@@ -114,10 +114,11 @@ export default function AuthForm() {
           await sendEmailVerification(user);
 
           // Save profile metadata in Firestore
-          await createUserProfile(user.uid, name, email);
+          // Get ID token first to pass to server action securely
+        const token = await user.getIdToken();
+        await createUserProfile(token, name, email);
 
           // Write session cookie
-          const token = await user.getIdToken();
           await setAuthSession(token, false);
 
           setMode("verify");
@@ -217,7 +218,7 @@ export default function AuthForm() {
         if (freshUser && freshUser.emailVerified) {
           const token = await freshUser.getIdToken(true);
           await setAuthSession(token, true);
-          await updateUserVerification(freshUser.uid);
+          await updateUserVerification(token);
           router.push("/dashboard");
         } else {
           setServerError("Email is still not verified. Please verify your email via the link sent to you.");
@@ -249,15 +250,13 @@ export default function AuthForm() {
         const userCredential = await signInWithPopup(auth, provider);
         const user = userCredential.user;
 
-        // Create user profile document in Firestore
-        await createUserProfile(user.uid, user.displayName || "Google User", user.email || "", true);
-
-        // Write session cookies
         const token = await user.getIdToken();
+        await createUserProfile(token, user.displayName || "Google User", user.email || "", true);
+        
         await setAuthSession(token, true);
 
         // Explicitly update Firestore verification flag as well
-        await updateUserVerification(user.uid);
+        await updateUserVerification(token);
 
         router.push("/dashboard");
       } catch (error: any) {
