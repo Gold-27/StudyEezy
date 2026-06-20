@@ -24,12 +24,21 @@ export default async function DashboardPage() {
       try {
         const decodedToken = await adminAuth.verifyIdToken(token);
         uid = decodedToken.uid;
+        if (decodedToken.name) {
+          firstName = decodedToken.name.split(" ")[0];
+        } else if (decodedToken.email) {
+          firstName = decodedToken.email.split("@")[0];
+        }
       } catch (err) {
         try {
           const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
           if (payload) {
             if (payload.user_id) uid = payload.user_id;
-            if (payload.name) firstName = payload.name.split(" ")[0];
+            if (payload.name) {
+              firstName = payload.name.split(" ")[0];
+            } else if (payload.email) {
+              firstName = payload.email.split("@")[0];
+            }
           }
         } catch (e) {}
 
@@ -48,10 +57,12 @@ export default async function DashboardPage() {
             }
           }
           
-          if (firstName === "Learner") {
+          if (firstName === "Learner" || !firstName) {
             const authRecord = await adminAuth.getUser(uid);
             if (authRecord.displayName) {
               firstName = authRecord.displayName.split(" ")[0];
+            } else if (authRecord.email) {
+              firstName = authRecord.email.split("@")[0];
             }
           }
         } catch (dbErr) {
@@ -85,6 +96,8 @@ export default async function DashboardPage() {
   } catch (error) {
     console.error("Error fetching data for dashboard:", error);
   }
+
+  console.log("DASHBOARD NAME DEBUG -> UID:", uid, "FIRSTNAME:", firstName);
 
   return (
     <div className="flex flex-col gap-6">

@@ -26,6 +26,12 @@ async function checkAccount() {
     console.log(`Email: ${user.email}`);
     console.log(`Display Name: ${user.displayName}`);
     console.log(`Creation Time: ${user.metadata.creationTime}`);
+
+    const doc = await admin.firestore().collection("users").doc(uid).get();
+    console.log("Firestore User Doc exists:", doc.exists);
+    if (doc.exists) {
+      console.log("Firestore User Doc Data:", doc.data());
+    }
   } catch (error) {
     console.error("Error fetching user:", error);
   }

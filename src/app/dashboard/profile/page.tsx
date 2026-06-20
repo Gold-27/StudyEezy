@@ -3,11 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { User, Settings, Lock, LogOut, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
-import { signOut, sendPasswordResetEmail, deleteUser } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { signOut, sendPasswordResetEmail } from "firebase/auth";
 import type { User as FirebaseUser } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { setAuthSession } from "@/actions/auth";
+import { deleteUserAccountAndData } from "@/actions/account";
 
 export default function ProfilePage() {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -70,24 +71,26 @@ export default function ProfilePage() {
     if (!confirmDelete) return;
 
     try {
-      // Try to delete from firestore
-      const userDocRef = doc(db, "users", user.uid);
-      await deleteDoc(userDocRef);
+      // Set a loading state or directly invoke the server action
+      const result = await deleteUserAccountAndData();
       
-      // Delete auth user
-      await deleteUser(user);
-      
-      // Clear server session
-      await setAuthSession(null, false);
-      
-      router.push("/");
+      if (result.success) {
+        // Fallback cleanup on client side just in case
+        try {
+          await signOut(auth);
+        } catch(e) {}
+        router.push("/");
+      } else {
+        console.error("Error from server:", result.error);
+        if (result.error === "Invalid session" || result.error === "Unauthorized") {
+          alert("For security reasons, please log out and log back in before deleting your account.");
+        } else {
+          alert("An error occurred while deleting your account: " + result.error);
+        }
+      }
     } catch (error: any) {
       console.error("Error deleting account:", error);
-      if (error.code === "auth/requires-recent-login") {
-        alert("For security reasons, please log out and log back in before deleting your account.");
-      } else {
-        alert("An error occurred while deleting your account. Please try again.");
-      }
+      alert("An error occurred while deleting your account. Please try again.");
     }
   };
 
