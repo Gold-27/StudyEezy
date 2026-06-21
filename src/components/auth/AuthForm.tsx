@@ -252,29 +252,36 @@ export default function AuthForm() {
 
   const handleGoogleLogin = async () => {
     clearMessages();
-    startTransition(async () => {
-      try {
-        const provider = new GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: "select_account" });
-        const userCredential = await signInWithPopup(auth, provider);
-        const user = userCredential.user;
+    
+    try {
+      // Must be called synchronously in the click handler to avoid popup blockers
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      const userCredential = await signInWithPopup(auth, provider);
+      const user = userCredential.user;
 
-        const token = await user.getIdToken();
-        await createUserProfile(token, user.displayName || "Google User", user.email || "", true);
-        
-        await setAuthSession(token, true);
+      startTransition(async () => {
+        try {
+          const token = await user.getIdToken();
+          await createUserProfile(token, user.displayName || "Google User", user.email || "", true);
+          
+          await setAuthSession(token, true);
 
-        // Explicitly update Firestore verification flag as well
-        await updateUserVerification(token);
+          // Explicitly update Firestore verification flag as well
+          await updateUserVerification(token);
 
-        router.push("/dashboard");
-      } catch (error: any) {
-        console.error("Google Sign-In failed:", error);
-        if (error.code !== "auth/popup-closed-by-user" && error.code !== "auth/cancelled-popup-request") {
-          setServerError(error.message || "Google Sign-In failed. Please try again.");
+          router.push("/dashboard");
+        } catch (serverError: any) {
+          console.error("Google Sign-In server setup failed:", serverError);
+          setServerError("Failed to setup account details. Please try again.");
         }
+      });
+    } catch (error: any) {
+      console.error("Google Sign-In popup failed:", error);
+      if (error.code !== "auth/popup-closed-by-user" && error.code !== "auth/cancelled-popup-request") {
+        setServerError(error.message || "Google Sign-In failed. Please ensure popups are allowed.");
       }
-    });
+    }
   };
 
   if (!isMounted) {
