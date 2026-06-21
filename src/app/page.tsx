@@ -16,7 +16,7 @@ export default function Home() {
         </p>
         <div className="flex flex-col gap-3">
           <Link
-            href="/auth"
+            href="/auth?mode=signup"
             className="w-full py-3 px-4 bg-primary text-primary-on font-semibold rounded-md shadow-2 hover:shadow-3 hover:scale-[1.02] hover:bg-primary/90 active:scale-[0.98] transition-all duration-200 ease-out"
           >
             Get Started
