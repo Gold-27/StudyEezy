@@ -280,7 +280,7 @@ export default function RoomDetailPage() {
                   {/* Reply trigger button */}
                   {!replyTo && (
                     <button
-                      onClick={() => { setReplyTo(q); setMsgType("answer"); }}
+                      onClick={() => setReplyTo(q)}
                       className="text-body-small text-primary hover:underline font-semibold flex items-center gap-1.5 mt-2"
                     >
                       <PlusCircle className="w-3.5 h-3.5" /> Reply with Answer

@@ -47,9 +47,10 @@ export default async function DashboardPage() {
         }
       }
 
-      if (uid) {
+      if (uid && adminDb) {
+        const db = adminDb;
         try {
-          const userDoc = await adminDb.collection("users").doc(uid).get();
+          const userDoc = await db.collection("users").doc(uid).get();
           if (userDoc.exists) {
             const fullName = userDoc.data()?.name || "";
             if (fullName) {
@@ -71,9 +72,9 @@ export default async function DashboardPage() {
 
         // Fetch user activities, sort in memory to avoid composite index requirements
         const [materialsSnap, summariesSnap, attemptsSnap] = await Promise.all([
-          adminDb.collection("studyMaterials").where("userId", "==", uid).get(),
-          adminDb.collection("summaries").where("userId", "==", uid).get(),
-          adminDb.collection("quizAttempts").where("userId", "==", uid).get()
+          db.collection("studyMaterials").where("userId", "==", uid).get(),
+          db.collection("summaries").where("userId", "==", uid).get(),
+          db.collection("quizAttempts").where("userId", "==", uid).get()
         ]);
 
         recentMaterials = materialsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
@@ -87,7 +88,7 @@ export default async function DashboardPage() {
             .sort((a: any, b: any) => (b.submittedAt?.seconds || 0) - (a.submittedAt?.seconds || 0))
             .slice(0, 3)
             .map(async (attempt: any) => {
-               const qDoc = await adminDb.collection("quizzes").doc(attempt.quizId).get();
+               const qDoc = await db.collection("quizzes").doc(attempt.quizId).get();
                return { ...attempt, quizTitle: qDoc.exists ? qDoc.data()?.title : "Quiz Assessment" };
             })
         );

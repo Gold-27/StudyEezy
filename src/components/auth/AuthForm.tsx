@@ -72,6 +72,15 @@ export default function AuthForm() {
     setInfoMessage(null);
   };
 
+  const handleSwitchMode = (newMode: "login" | "signup" | "reset") => {
+    setMode(newMode);
+    clearMessages();
+    setName("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+  };
+
   const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault();
     clearMessages();
@@ -367,6 +376,7 @@ export default function AuthForm() {
               onChange={(e) => setEmail(e.target.value)}
               disabled={isPending}
               placeholder="student@example.edu"
+              autoComplete={mode === "login" ? "username" : "off"}
               className="w-full px-3 py-2 bg-surface border border-outline/30 hover:border-outline/60 rounded-md text-body-medium focus:outline-none focus:border-primary transition-colors duration-200"
             />
             {validationErrors.email && (
@@ -385,6 +395,7 @@ export default function AuthForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isPending}
                   placeholder="••••••••"
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
                   className="w-full pl-3 pr-10 py-2 bg-surface border border-outline/30 hover:border-outline/60 rounded-md text-body-medium focus:outline-none focus:border-primary transition-colors duration-200"
                 />
                 {password.length > 0 && (
@@ -414,6 +425,7 @@ export default function AuthForm() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={isPending}
                   placeholder="••••••••"
+                  autoComplete="new-password"
                   className="w-full pl-3 pr-10 py-2 bg-surface border border-outline/30 hover:border-outline/60 rounded-md text-body-medium focus:outline-none focus:border-primary transition-colors duration-200"
                 />
                 {confirmPassword.length > 0 && (
@@ -477,7 +489,7 @@ export default function AuthForm() {
                   Don't have an account?{" "}
                   <button
                     type="button"
-                    onClick={() => { setMode("signup"); clearMessages(); }}
+                    onClick={() => handleSwitchMode("signup")}
                     className="text-primary font-medium hover:underline focus:outline-none transition-colors"
                   >
                     Sign Up
@@ -485,7 +497,7 @@ export default function AuthForm() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => { setMode("reset"); clearMessages(); }}
+                  onClick={() => handleSwitchMode("reset")}
                   className="text-body-small text-primary hover:underline font-medium"
                 >
                   Forgot your password?
@@ -498,7 +510,7 @@ export default function AuthForm() {
                 Already have an account?{" "}
                 <button
                   type="button"
-                  onClick={() => { setMode("login"); clearMessages(); }}
+                  onClick={() => handleSwitchMode("login")}
                   className="text-primary font-medium hover:underline focus:outline-none transition-colors"
                 >
                   Login
@@ -509,7 +521,7 @@ export default function AuthForm() {
             {mode === "reset" && (
               <button
                 type="button"
-                onClick={() => { setMode("login"); clearMessages(); }}
+                onClick={() => handleSwitchMode("login")}
                 className="text-body-small text-primary hover:underline font-medium"
               >
                 Back to Login

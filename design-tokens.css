@@ -136,7 +136,7 @@
   --sys-color-inverse-surface: var(--primitive-color-palettes-neutral-neutral20);
   --sys-color-on-accent-container: var(--primitive-color-palettes-accent-accent40);
   --sys-color-on-accent: var(--primitive-color-palettes-accent-accent100);
-  --sys-color-on-background: var(--primitive-color-palettes-neutral-neutral10);
+  --sys-color-on-background: var(--primitive-color-palettes-neutral-variant-neutral-variant30);
   --sys-color-on-error-container: var(--primitive-color-palettes-error-error40);
   --sys-color-on-error: var(--primitive-color-palettes-error-error100);
   --sys-color-on-primary-container: var(--primitive-color-palettes-primary-primary30);
@@ -150,7 +150,7 @@
   --sys-color-on-success-container: var(--primitive-color-palettes-success-success30);
   --sys-color-on-success: var(--primitive-color-palettes-success-success100);
   --sys-color-on-surface-variant: var(--primitive-color-palettes-neutral-variant-neutral-variant30);
-  --sys-color-on-surface: var(--primitive-color-palettes-neutral-neutral10);
+  --sys-color-on-surface: var(--primitive-color-palettes-neutral-variant-neutral-variant30);
   --sys-color-on-tertiary-container: var(--primitive-color-palettes-tertiary-tertiary30);
   --sys-color-on-tertiary-fixed-variant: var(--primitive-color-palettes-tertiary-tertiary30);
   --sys-color-on-tertiary-fixed: var(--primitive-color-palettes-tertiary-tertiary20);
