@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-5 text-center">
+    <main className="flex h-[100dvh] overflow-hidden flex-col items-center justify-center p-5 text-center">
       <div className="max-w-md w-full bg-surface p-6 rounded-lg shadow-1 border border-outline/10 flex flex-col items-center">
         <div className="flex items-center gap-1 mb-4">
           <Image src="/logo.jpeg" alt="StudyEezy Logo" width={48} height={48} className="rounded-lg shadow-sm" />

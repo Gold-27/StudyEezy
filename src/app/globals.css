@@ -14,7 +14,8 @@ body {
   line-height: var(--sys-typography-body-body-large-line-height);
   margin: 0;
   padding: 0;
-  min-height: 100vh;
+  min-height: 100dvh;
+  overscroll-behavior: none;
 }
 
 input, button, select, textarea {
