@@ -59,7 +59,8 @@ export default function AuthForm() {
       if (user) {
         // Trigger verification update on firestore if verified
         if (user.emailVerified) {
-          await updateUserVerification(user.uid);
+          const token = await user.getIdToken();
+          await updateUserVerification(token);
         }
       }
     });
@@ -159,7 +160,8 @@ export default function AuthForm() {
             setMode("verify");
             setServerError("Your email is not verified yet. Please click the verification link in your email inbox.");
           } else {
-            await updateUserVerification(user.uid);
+            const token = await user.getIdToken();
+            await updateUserVerification(token);
             router.push("/dashboard");
           }
 
@@ -260,22 +262,23 @@ export default function AuthForm() {
       const userCredential = await signInWithPopup(auth, provider);
       const user = userCredential.user;
 
-      startTransition(async () => {
-        try {
-          const token = await user.getIdToken();
-          await createUserProfile(token, user.displayName || "Google User", user.email || "", true);
-          
-          await setAuthSession(token, true);
-
-          // Explicitly update Firestore verification flag as well
-          await updateUserVerification(token);
-
-          router.push("/dashboard");
-        } catch (serverError: any) {
-          console.error("Google Sign-In server setup failed:", serverError);
-          setServerError("Failed to setup account details. Please try again.");
+      try {
+        const token = await user.getIdToken();
+        const profileRes = await createUserProfile(token, user.displayName || "Google User", user.email || "", true);
+        if (!profileRes || !profileRes.success) {
+           console.warn("Profile creation reported failure:", profileRes?.error);
         }
-      });
+        
+        await setAuthSession(token, true);
+
+        // Explicitly update Firestore verification flag as well
+        await updateUserVerification(token);
+
+        router.push("/dashboard");
+      } catch (serverError: any) {
+        console.error("Google Sign-In server setup failed:", serverError);
+        setServerError(`Setup failed: ${serverError?.message || "Unknown error"}. Please refresh and try again.`);
+      }
     } catch (error: any) {
       console.error("Google Sign-In popup failed:", error);
       if (error.code !== "auth/popup-closed-by-user" && error.code !== "auth/cancelled-popup-request") {
