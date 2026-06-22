@@ -96,15 +96,22 @@ export default function RoomDetailPage() {
 
     const q = query(
       collection(db, "studyRoomMessages"),
-      where("roomId", "==", roomId),
-      orderBy("createdAt", "asc")
+      where("roomId", "==", roomId)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const items: StudyRoomMessage[] = [];
       snapshot.forEach((doc) => {
-        items.push(doc.data() as StudyRoomMessage);
+        items.push({ id: doc.id, ...doc.data() } as StudyRoomMessage);
       });
+
+      // Sort ascending by createdAt in memory
+      items.sort((a, b) => {
+        const timeA = a.createdAt?.seconds || 0;
+        const timeB = b.createdAt?.seconds || 0;
+        return timeA - timeB;
+      });
+
       setMessages(items);
       setLoading(false);
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);

@@ -51,9 +51,7 @@ export default function ChatPage() {
 
       const q = query(
         collection(db, "chatSessions"),
-        where("userId", "==", user.uid),
-        orderBy("createdAt", "desc"),
-        limit(5)
+        where("userId", "==", user.uid)
       );
 
       const unsubscribeSnapshot = onSnapshot(q, async (snapshot) => {
@@ -61,11 +59,19 @@ export default function ChatPage() {
         snapshot.forEach((doc) => {
           items.push({ id: doc.id, ...doc.data() } as ChatSession);
         });
-        setSessions(items);
 
-        if (items.length > 0 && !activeSession) {
-          setActiveSession(items[0]);
-        } else if (items.length === 0 && !activeSession) {
+        // Sort descending by createdAt in memory and slice
+        items.sort((a, b) => {
+          const timeA = a.createdAt?.seconds || 0;
+          const timeB = b.createdAt?.seconds || 0;
+          return timeB - timeA;
+        });
+        const sortedItems = items.slice(0, 5);
+        setSessions(sortedItems);
+
+        if (sortedItems.length > 0 && !activeSession) {
+          setActiveSession(sortedItems[0]);
+        } else if (sortedItems.length === 0 && !activeSession) {
           // Auto create a default session if none exists
           const res = await createChatSessionAction("Study Session");
           if (res.success && res.sessionId) {

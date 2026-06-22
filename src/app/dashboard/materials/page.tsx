@@ -28,8 +28,7 @@ export default function MaterialsPage() {
 
       const q = query(
         collection(db, "studyMaterials"),
-        where("userId", "==", user.uid),
-        orderBy("createdAt", "desc")
+        where("userId", "==", user.uid)
       );
 
       const unsubscribeSnapshot = onSnapshot(
@@ -39,6 +38,14 @@ export default function MaterialsPage() {
           snapshot.forEach((doc) => {
             items.push({ id: doc.id, ...doc.data() } as StudyMaterial);
           });
+          
+          // Sort descending by createdAt in memory
+          items.sort((a, b) => {
+            const timeA = a.createdAt?.seconds || 0;
+            const timeB = b.createdAt?.seconds || 0;
+            return timeB - timeA;
+          });
+          
           setMaterials(items);
           setLoading(false);
         },
