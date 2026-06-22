@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useTransition } from "react";
-import { Upload, Camera, Check, AlertCircle, RefreshCw, X } from "lucide-react";
+import React, { useState, useTransition } from "react";
+import { Upload, Check, AlertCircle, RefreshCw } from "lucide-react";
 import { uploadStudyMaterial } from "@/actions/upload";
 
 interface UploadZoneProps {
@@ -13,12 +13,6 @@ export default function UploadZone({ onUploadSuccess }: UploadZoneProps) {
   const [title, setTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  
-  // Camera capture states
-  const [cameraActive, setCameraActive] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
   const [isPending, startTransition] = useTransition();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,61 +27,6 @@ export default function UploadZone({ onUploadSuccess }: UploadZoneProps) {
         setTitle(nameWithoutExt || selectedFile.name);
       }
     }
-  };
-
-  const startCamera = async () => {
-    setError(null);
-    setSuccess(null);
-    setFile(null);
-    setCameraActive(true);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    } catch (err: any) {
-      console.error("Camera permissions check failed:", err);
-      setError("Unable to access camera. Please check your camera permissions.");
-      setCameraActive(false);
-    }
-  };
-
-  const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext("2d");
-      
-      if (ctx) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const capturedFile = new File(
-              [blob],
-              `camera_capture_${Date.now()}.jpg`,
-              { type: "image/jpeg" }
-            );
-            setFile(capturedFile);
-            setTitle(`Camera Capture - ${new Date().toLocaleDateString()}`);
-          }
-        }, "image/jpeg");
-      }
-      stopCamera();
-    }
-  };
-
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach((track) => track.stop());
-      videoRef.current.srcObject = null;
-    }
-    setCameraActive(false);
   };
 
   const handleUpload = async (e: React.FormEvent) => {
@@ -136,41 +75,8 @@ export default function UploadZone({ onUploadSuccess }: UploadZoneProps) {
         </div>
       )}
 
-      {cameraActive ? (
-        <div className="flex flex-col items-center gap-3">
-          <div className="relative w-full aspect-video bg-black rounded-md overflow-hidden border border-outline/20">
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              className="w-full h-full object-cover"
-            />
-            <button
-              onClick={stopCamera}
-              className="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-full hover:bg-black/80 transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="flex gap-3 w-full">
-            <button
-              onClick={capturePhoto}
-              className="flex-1 py-2.5 bg-primary text-primary-on font-semibold rounded-md shadow-2 hover:opacity-95 transition-opacity"
-            >
-              Capture Note
-            </button>
-            <button
-              onClick={stopCamera}
-              className="px-4 py-2.5 bg-surface-variant text-on-surface-variant font-medium rounded-md border border-outline/20 hover:bg-surface-variant/90 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-          <canvas ref={canvasRef} className="hidden" />
-        </div>
-      ) : (
-        <form onSubmit={handleUpload} className="flex flex-col gap-4">
-          {!file ? (
+      <form onSubmit={handleUpload} className="flex flex-col gap-4">
+        {!file ? (
             <div className="flex flex-col gap-3">
               <label className="border-2 border-dashed border-outline/30 rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
                 <Upload className="w-8 h-8 text-on-surface-variant/70 mb-2" />
@@ -185,16 +91,6 @@ export default function UploadZone({ onUploadSuccess }: UploadZoneProps) {
                   className="hidden"
                 />
               </label>
-
-              <div className="text-center text-body-small text-on-surface-variant/50 lg:hidden">— OR —</div>
-
-              <button
-                type="button"
-                onClick={startCamera}
-                className="w-full py-3 bg-surface-variant text-on-surface-variant font-semibold rounded-md border border-outline/20 flex items-center justify-center gap-2 hover:bg-surface-variant/90 transition-colors lg:hidden"
-              >
-                <Camera className="w-5 h-5 text-primary" /> Take Picture of Notes
-              </button>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -244,7 +140,6 @@ export default function UploadZone({ onUploadSuccess }: UploadZoneProps) {
             </div>
           )}
         </form>
-      )}
-    </div>
+      </div>
   );
 }
