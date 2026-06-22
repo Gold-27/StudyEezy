@@ -296,7 +296,7 @@ export default function AuthForm() {
   }
 
   return (
-    <div className="w-full max-w-sm mx-auto p-4 bg-surface rounded-lg shadow-1 border border-outline/10 text-on-surface">
+    <div className="w-full max-w-sm mx-auto p-4 bg-surface rounded-lg shadow-1 border border-outline/10 text-on-surface max-h-[90dvh] overflow-y-auto">
       <div className="flex flex-col items-center mb-6">
         <div className="flex items-center gap-1 mb-2">
           <Image src="/logo.jpeg" alt="StudyEezy Logo" width={32} height={32} className="rounded-md" />
@@ -358,7 +358,7 @@ export default function AuthForm() {
           </button>
         </div>
       ) : (
-        <form onSubmit={handleAuthAction} className="flex flex-col gap-4" noValidate>
+        <form onSubmit={handleAuthAction} className="flex flex-col gap-3" noValidate>
           {mode === "signup" && (
             <div>
               <label htmlFor="name" className="block text-label-large font-medium mb-1">Name</label>
