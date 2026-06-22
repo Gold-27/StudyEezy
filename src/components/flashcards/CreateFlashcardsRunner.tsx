@@ -17,6 +17,8 @@ export default function CreateFlashcardsRunner() {
 
   const summaryId = searchParams.get("summaryId");
   const materialId = searchParams.get("materialId");
+  const querySourceId = searchParams.get("sourceId");
+  const querySourceType = searchParams.get("sourceType") as "material" | "summary" | null;
 
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,8 +27,8 @@ export default function CreateFlashcardsRunner() {
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    const sourceId = summaryId || materialId;
-    const sourceType = summaryId ? "summary" : "material";
+    const sourceId = querySourceId || summaryId || materialId;
+    const sourceType = querySourceType || (summaryId ? "summary" : "material");
 
     if (!sourceId) {
       setError("No study source selected. Please create cards from a summary or material.");
