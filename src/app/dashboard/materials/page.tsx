@@ -4,10 +4,12 @@ import React, { useState, useEffect } from "react";
 import UploadZone from "@/components/materials/UploadZone";
 import { db, auth } from "@/lib/firebase";
 import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
-import { BookOpen, Calendar, Eye, FileText, HelpCircle, Mic } from "lucide-react";
+import { BookOpen, Calendar, Eye, FileText, HelpCircle, Mic, Trash2 } from "lucide-react";
 import { StudyMaterial } from "@/types";
 import Link from "next/link";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
+import { deleteStudyMaterialAction } from "@/actions/deleteActions";
+import { useTransition } from "react";
 
 export default function MaterialsPage() {
   const [materials, setMaterials] = useState<StudyMaterial[]>([]);
@@ -158,6 +160,7 @@ export default function MaterialsPage() {
                         Generate Quiz
                       </div>
                     </div>
+                    <DeleteMaterialBtn materialId={m.id} />
                   </div>
                 </div>
               );
@@ -165,6 +168,35 @@ export default function MaterialsPage() {
           </div>
         )}
       </section>
+    </div>
+  );
+}
+
+function DeleteMaterialBtn({ materialId }: { materialId: string }) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleDelete = () => {
+    if (!confirm("Are you sure you want to delete this material?")) return;
+    startTransition(async () => {
+      const res = await deleteStudyMaterialAction(materialId);
+      if (!res.success) {
+        alert(res.error || "Failed to delete material");
+      }
+    });
+  };
+
+  return (
+    <div className="relative group">
+      <button
+        onClick={handleDelete}
+        disabled={isPending}
+        className="p-2 bg-error-container text-on-error-container border border-error/20 rounded-md hover:bg-error-container/80 block disabled:opacity-50"
+      >
+        <Trash2 className="w-4 h-4 text-error" />
+      </button>
+      <div className="absolute bottom-[calc(100%+8px)] left-1/2 -translate-x-1/2 w-max px-2.5 py-1 bg-gray-900 text-white font-medium text-xs rounded shadow-lg hidden group-hover:block z-[9999] pointer-events-none whitespace-nowrap">
+        {isPending ? "Deleting..." : "Delete"}
+      </div>
     </div>
   );
 }

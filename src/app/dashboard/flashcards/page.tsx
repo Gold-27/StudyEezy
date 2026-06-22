@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { db, auth } from "@/lib/firebase";
 import { collection, query, where, getDocs, getDoc, doc } from "firebase/firestore";
-import { Layers, ChevronRight, Clock, PlusCircle } from "lucide-react";
+import { Layers, ChevronRight, Clock, PlusCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { deleteFlashcardDeckAction } from "@/actions/deleteActions";
+import { useTransition } from "react";
 
 interface FlashcardDeck {
   sourceId: string;
@@ -122,16 +124,23 @@ export default function FlashcardsPage() {
               const progressPercentage = Math.round((deck.mastered / deck.count) * 100);
               
               return (
-                <Link
+                <div
                   key={deck.sourceId}
-                  href={`/dashboard/flashcards/create?sourceId=${deck.sourceId}&sourceType=${deck.sourceType}`}
-                  className="bg-surface p-5 rounded-lg border border-outline/10 shadow-1 hover:shadow-2 transition-all group flex flex-col justify-between block relative overflow-hidden"
+                  className="bg-surface p-5 rounded-lg border border-outline/10 shadow-1 hover:shadow-2 transition-all group flex flex-col justify-between relative overflow-hidden"
                 >
-                  <div className="flex flex-col gap-1 mb-4">
-                    <div className="flex items-start justify-between">
+                  <Link
+                    href={`/dashboard/flashcards/create?sourceId=${deck.sourceId}&sourceType=${deck.sourceType}`}
+                    className="absolute inset-0 z-0"
+                    aria-label={`View ${deck.title} deck`}
+                  />
+                  <div className="flex flex-col gap-1 mb-4 relative z-10 pointer-events-none">
+                    <div className="flex items-start justify-between pointer-events-auto">
                       <Layers className="w-6 h-6 text-primary mb-2" />
-                      <div className="p-1.5 rounded-full text-on-surface-variant group-hover:text-primary group-hover:bg-primary-container/20 transition-colors">
-                        <ChevronRight className="w-4 h-4" />
+                      <div className="flex items-center gap-2">
+                        <DeleteFlashcardDeckBtn sourceId={deck.sourceId} />
+                        <div className="p-1.5 rounded-full text-on-surface-variant group-hover:text-primary group-hover:bg-primary-container/20 transition-colors">
+                          <ChevronRight className="w-4 h-4" />
+                        </div>
                       </div>
                     </div>
                     <h3 className="text-title-medium font-semibold text-on-surface line-clamp-2 leading-tight">
@@ -142,7 +151,7 @@ export default function FlashcardsPage() {
                     </p>
                   </div>
                   
-                  <div className="flex flex-col gap-2 mt-auto">
+                  <div className="flex flex-col gap-2 mt-auto relative z-10 pointer-events-none">
                     <div className="flex justify-between text-body-small font-medium text-on-surface-variant">
                       <span>{deck.count} Cards</span>
                       <span className={progressPercentage === 100 ? "text-primary" : ""}>
@@ -157,12 +166,38 @@ export default function FlashcardsPage() {
                       ></div>
                     </div>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>
         )}
       </section>
     </div>
+  );
+}
+
+function DeleteFlashcardDeckBtn({ sourceId }: { sourceId: string }) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!confirm("Are you sure you want to delete this flashcard deck?")) return;
+    startTransition(async () => {
+      const res = await deleteFlashcardDeckAction(sourceId);
+      if (!res.success) {
+        alert(res.error || "Failed to delete deck");
+      }
+    });
+  };
+
+  return (
+    <button
+      onClick={handleDelete}
+      disabled={isPending}
+      className="p-1.5 rounded-full text-error hover:bg-error-container/20 transition-colors disabled:opacity-50 relative z-20"
+      title="Delete Deck"
+    >
+      <Trash2 className="w-4 h-4" />
+    </button>
   );
 }

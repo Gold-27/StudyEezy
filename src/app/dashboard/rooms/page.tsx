@@ -4,15 +4,17 @@ import React, { useState, useEffect, useTransition } from "react";
 import { db, auth } from "@/lib/firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { createStudyRoomAction, joinStudyRoomAction } from "@/actions/studyRooms";
-import { Users, Plus, ArrowRight, Clipboard, AlertCircle, Mic } from "lucide-react";
+import { Users, Plus, ArrowRight, Clipboard, AlertCircle, Mic, Trash2 } from "lucide-react";
 import { StudyRoom } from "@/types";
 import Link from "next/link";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
 import { putOfflineItem } from "@/lib/indexedDb";
+import { deleteStudyRoomAction } from "@/actions/deleteActions";
 
 export default function RoomsPage() {
   const [rooms, setRooms] = useState<StudyRoom[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
   const [roomName, setRoomName] = useState("");
   const [inviteCode, setInviteCode] = useState("");
@@ -30,8 +32,11 @@ export default function RoomsPage() {
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
       if (!user) {
         setLoading(false);
+        setCurrentUserId(null);
         return;
       }
+      
+      setCurrentUserId(user.uid);
 
       // Query room memberships for current user
       const q = query(
@@ -260,18 +265,47 @@ export default function RoomsPage() {
                     </span>
                   </div>
                 </div>
-                
-                <Link
-                  href={`/dashboard/rooms/${room.id}`}
-                  className="px-4 py-2 bg-surface border border-outline/15 text-primary text-body-small font-semibold rounded-md hover:bg-surface-variant/50 shadow-1"
-                >
-                  Enter
-                </Link>
+                <div className="flex gap-2 shrink-0">
+                  {room.ownerId === currentUserId && (
+                    <DeleteStudyRoomBtn roomId={room.id} />
+                  )}
+                  <Link
+                    href={`/dashboard/rooms/${room.id}`}
+                    className="px-4 py-2 bg-surface border border-outline/15 text-primary text-body-small font-semibold rounded-md hover:bg-surface-variant/50 shadow-1 flex items-center justify-center"
+                  >
+                    Enter
+                  </Link>
+                </div>
               </div>
             ))}
           </div>
         )}
       </section>
     </div>
+  );
+}
+
+function DeleteStudyRoomBtn({ roomId }: { roomId: string }) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleDelete = () => {
+    if (!confirm("Are you sure you want to delete this study room? This action cannot be undone.")) return;
+    startTransition(async () => {
+      const res = await deleteStudyRoomAction(roomId);
+      if (!res.success) {
+        alert(res.error || "Failed to delete study room");
+      }
+    });
+  };
+
+  return (
+    <button
+      onClick={handleDelete}
+      disabled={isPending}
+      className="p-2 aspect-square flex items-center justify-center bg-error-container text-on-error-container border border-error/20 rounded-md hover:bg-error-container/80 disabled:opacity-50 transition-colors"
+      title="Delete Study Room"
+    >
+      <Trash2 className="w-4 h-4 text-error" />
+    </button>
   );
 }
