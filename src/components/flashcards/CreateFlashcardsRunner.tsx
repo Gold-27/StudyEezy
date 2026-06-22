@@ -126,7 +126,7 @@ export default function CreateFlashcardsRunner() {
   return (
     <div className="flex flex-col gap-6 pb-8 text-on-surface">
       <div className="flex items-start gap-3">
-        <Link href="/dashboard/materials" className="-ml-1.5 mt-1 shrink-0 transition-colors">
+        <Link href="/dashboard/flashcards" className="-ml-1.5 mt-1 shrink-0 transition-colors">
           <ArrowLeft className="w-5 h-5 text-on-surface-variant hover:text-primary" />
         </Link>
         <div>
