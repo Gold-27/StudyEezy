@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, connectFirestoreEmulator } from "firebase/firestore";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, memoryLocalCache, connectFirestoreEmulator } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
@@ -18,9 +18,11 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 // Initialize Auth
 const auth = getAuth(app);
 
-// Initialize Firestore with offline persistence enabled
+const isEmulator = !!process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST;
+
+// Initialize Firestore with offline persistence enabled (only in production)
 const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({
+  localCache: isEmulator ? memoryLocalCache() : persistentLocalCache({
     tabManager: persistentMultipleTabManager(),
   }),
 });
