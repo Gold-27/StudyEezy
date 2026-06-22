@@ -189,6 +189,7 @@ export default function CreateQuizForm() {
                 min="1"
                 max="50"
                 disabled={questionCount !== -1}
+                onBlur={() => window.scrollTo(0, 0)}
                 className="w-20 px-2 py-1 bg-surface border border-outline/30 rounded-md text-body-medium focus:outline-none"
               />
             </label>

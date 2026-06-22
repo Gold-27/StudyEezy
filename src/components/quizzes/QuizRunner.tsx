@@ -55,10 +55,12 @@ export default function QuizRunner({ quiz }: QuizRunnerProps) {
 
   const handleNext = () => {
     setCurrentIndex((prev) => Math.min(prev + 1, questions.length - 1));
+    window.scrollTo(0, 0);
   };
 
   const handlePrev = () => {
     setCurrentIndex((prev) => Math.max(prev - 1, 0));
+    window.scrollTo(0, 0);
   };
 
   const handleSubmit = () => {
@@ -154,6 +156,7 @@ export default function QuizRunner({ quiz }: QuizRunnerProps) {
                 type="text"
                 value={currentAnswer}
                 onChange={(e) => handleTextChange(e.target.value)}
+                onBlur={() => window.scrollTo(0, 0)}
                 disabled={isPending}
                 placeholder="Type your answer here..."
                 className="w-full pl-3 pr-12 py-3 bg-surface border border-outline/30 rounded-md text-body-medium focus:outline-none focus:border-primary disabled:opacity-50"
@@ -178,6 +181,7 @@ export default function QuizRunner({ quiz }: QuizRunnerProps) {
               <textarea
                 value={currentAnswer}
                 onChange={(e) => handleTextChange(e.target.value)}
+                onBlur={() => window.scrollTo(0, 0)}
                 disabled={isPending}
                 placeholder="Write your explanation or theory response..."
                 rows={5}
