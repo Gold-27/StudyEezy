@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { QuizAttempt } from "@/types";
 import EvaluationReport from "@/components/quizzes/EvaluationReport";
@@ -22,7 +22,7 @@ export default function QuizEvaluationPage() {
   useEffect(() => {
     if (!attemptId) return;
 
-    const fetchAttempt = async () => {
+    const fetchAttempt = async (user: any) => {
       try {
         const docRef = doc(db, "quizAttempts", attemptId);
         const docSnap = await getDoc(docRef);
@@ -72,17 +72,26 @@ export default function QuizEvaluationPage() {
             const cachedQuiz = await getOfflineItem("quizzes", cached.quizId);
             if (cachedQuiz) setQuiz(cachedQuiz);
           } else {
-            setError("Error loading quiz attempt details. You appear to be offline and this content is not cached.");
+            setError(`Error loading quiz attempt details. You appear to be offline and this content is not cached. (Details: ${err instanceof Error ? err.message : String(err)})`);
           }
         } catch (dbErr) {
-          setError("Error loading quiz attempt details.");
+          setError(`Error loading quiz attempt details. (Details: ${err instanceof Error ? err.message : String(err)})`);
         }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAttempt();
+    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        setLoading(false);
+        setError("You must be logged in to view this quiz attempt.");
+        return;
+      }
+      fetchAttempt(user);
+    });
+
+    return () => unsubscribeAuth();
   }, [attemptId]);
 
   if (loading) {
