@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { BookOpen, FileText, Award, Users, PlusCircle, Clock, ChevronRight } from "lucide-react";
+import { BookOpen, FileText, Award, Users, PlusCircle, Clock, ChevronRight, Layers } from "lucide-react";
 import { cookies } from "next/headers";
 import { adminAuth, adminDb } from "@/lib/firebaseAdmin";
 
@@ -16,6 +16,7 @@ export default async function DashboardPage() {
   let recentMaterials: any[] = [];
   let recentSummaries: any[] = [];
   let recentAttempts: any[] = [];
+  let recentFlashcards: any[] = [];
 
   try {
     const cookieStore = await cookies();
@@ -71,10 +72,11 @@ export default async function DashboardPage() {
         }
 
         // Fetch user activities, sort in memory to avoid composite index requirements
-        const [materialsSnap, summariesSnap, attemptsSnap] = await Promise.all([
+        const [materialsSnap, summariesSnap, attemptsSnap, flashcardsSnap] = await Promise.all([
           db.collection("studyMaterials").where("userId", "==", uid).get(),
           db.collection("summaries").where("userId", "==", uid).get(),
-          db.collection("quizAttempts").where("userId", "==", uid).get()
+          db.collection("quizAttempts").where("userId", "==", uid).get(),
+          db.collection("flashcards").where("userId", "==", uid).get()
         ]);
 
         recentMaterials = materialsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
@@ -91,6 +93,39 @@ export default async function DashboardPage() {
                const qDoc = await db.collection("quizzes").doc(attempt.quizId).get();
                return { ...attempt, quizTitle: qDoc.exists ? qDoc.data()?.title : "Quiz Assessment" };
             })
+        );
+
+        // Group flashcards into decks
+        const decksMap = new Map();
+        flashcardsSnap.docs.forEach((d) => {
+          const card = d.data();
+          if (!decksMap.has(card.sourceId)) {
+            decksMap.set(card.sourceId, {
+              sourceId: card.sourceId,
+              sourceType: card.sourceType,
+              count: 0,
+              createdAt: card.createdAt
+            });
+          }
+          decksMap.get(card.sourceId).count++;
+          if (card.createdAt?.seconds > decksMap.get(card.sourceId).createdAt?.seconds) {
+            decksMap.get(card.sourceId).createdAt = card.createdAt;
+          }
+        });
+
+        let sortedDecks = Array.from(decksMap.values())
+          .sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+          .slice(0, 3);
+          
+        recentFlashcards = await Promise.all(
+          sortedDecks.map(async (deck) => {
+            const sourceCol = deck.sourceType === "material" ? "studyMaterials" : "summaries";
+            const sourceDoc = await db.collection(sourceCol).doc(deck.sourceId).get();
+            return {
+              ...deck,
+              title: sourceDoc.exists ? sourceDoc.data()?.title : "Untitled Deck"
+            };
+          })
         );
       }
     }
@@ -196,6 +231,39 @@ export default async function DashboardPage() {
           ) : (
             <div className="py-4 text-center text-body-medium text-outline">
               No summaries generated yet.
+            </div>
+          )}
+        </div>
+
+        {/* Recent Flashcards */}
+        <div className="bg-surface p-4 rounded-lg border border-outline/10 shadow-1 flex flex-col gap-3">
+          <div className="flex items-center justify-between pb-2 border-b border-outline/10">
+            <h4 className="text-title-small font-semibold flex items-center gap-2">
+              <Layers className="w-4 h-4 text-primary" /> Generated Flashcards
+            </h4>
+            <Link href="/dashboard/flashcards" className="text-body-small text-primary hover:underline font-medium">
+              View All
+            </Link>
+          </div>
+          {recentFlashcards.length > 0 ? (
+            <div className="flex flex-col divide-y divide-outline/5">
+              {recentFlashcards.map((deck) => (
+                <Link href={`/dashboard/flashcards/create?sourceId=${deck.sourceId}&sourceType=${deck.sourceType}`} key={deck.sourceId} className="py-2 flex items-center justify-between group hover:bg-surface-variant/30 px-1 -mx-1 rounded transition-colors">
+                  <div className="flex flex-col">
+                    <span className="text-body-medium font-semibold text-on-surface truncate max-w-[200px] sm:max-w-xs">{deck.title}</span>
+                    <span className="text-body-small text-on-surface-variant flex items-center gap-1 mt-0.5 uppercase tracking-wider text-[10px]">
+                      {deck.count} Cards • {formatDate(deck.createdAt?.seconds)}
+                    </span>
+                  </div>
+                  <div className="p-1.5 rounded-full text-on-surface-variant group-hover:text-primary transition-colors">
+                    <ChevronRight className="w-4 h-4" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="py-4 text-center text-body-medium text-outline">
+              No flashcards generated yet.
             </div>
           )}
         </div>

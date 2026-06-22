@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, FileText, Users, User } from "lucide-react";
+import { Home, FileText, Users, User, Layers } from "lucide-react";
 
 export default function MobileNav() {
   const pathname = usePathname();
@@ -11,6 +11,7 @@ export default function MobileNav() {
   const navItems = [
     { name: "Home", href: "/dashboard", icon: Home },
     { name: "Materials", href: "/dashboard/materials", icon: FileText },
+    { name: "Cards", href: "/dashboard/flashcards", icon: Layers },
     { name: "Rooms", href: "/dashboard/rooms", icon: Users },
     { name: "Profile", href: "/dashboard/profile", icon: User },
   ];
@@ -28,8 +29,7 @@ export default function MobileNav() {
               pathname === "/dashboard/materials" || 
               pathname.startsWith("/dashboard/materials/") ||
               pathname.startsWith("/dashboard/summaries/") ||
-              pathname.startsWith("/dashboard/quizzes/") ||
-              pathname.startsWith("/dashboard/flashcards/");
+              pathname.startsWith("/dashboard/quizzes/");
           } else {
             isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           }

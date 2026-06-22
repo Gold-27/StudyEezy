@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import MobileNav from "@/components/layout/MobileNav";
-import { WifiOff, Home, FileText, Users, User } from "lucide-react";
+import { WifiOff, Home, FileText, Users, User, Layers } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -18,6 +18,7 @@ export default function DashboardLayout({
   const navItems = [
     { name: "Home", href: "/dashboard", icon: Home },
     { name: "Materials", href: "/dashboard/materials", icon: FileText },
+    { name: "Flashcards", href: "/dashboard/flashcards", icon: Layers },
     { name: "Rooms", href: "/dashboard/rooms", icon: Users },
     { name: "Profile", href: "/dashboard/profile", icon: User },
   ];
@@ -67,8 +68,7 @@ export default function DashboardLayout({
                   pathname === "/dashboard/materials" || 
                   pathname.startsWith("/dashboard/materials/") ||
                   pathname.startsWith("/dashboard/summaries/") ||
-                  pathname.startsWith("/dashboard/quizzes/") ||
-                  pathname.startsWith("/dashboard/flashcards/");
+                  pathname.startsWith("/dashboard/quizzes/");
               } else {
                 isActive = pathname === item.href || pathname.startsWith(item.href + "/");
               }
