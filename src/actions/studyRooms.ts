@@ -188,7 +188,7 @@ export async function postRoomMessageAction(
   roomId: string,
   type: "question" | "answer",
   content: string,
-  parentMessageId?: string
+  parentMessageId: string | null = null
 ) {
   const userId = await getUserIdFromSession();
   if (!userId) {

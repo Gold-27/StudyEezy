@@ -176,7 +176,7 @@ export default function RoomDetailPage() {
     setReplyTo(null);
 
     startTransition(async () => {
-      const result = await postRoomMessageAction(roomId, targetType, textContent, parentId);
+      const result = await postRoomMessageAction(roomId, targetType, textContent, parentId || null);
       if (!result.success) {
         setError(result.error || "Failed to post message.");
         setContent(textContent); // Restore input on error
@@ -227,7 +227,7 @@ export default function RoomDetailPage() {
   const getAnswersForQuestion = (qId: string) => messages.filter((m) => m.type === "answer" && m.parentMessageId === qId);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-140px)] text-on-surface pb-4 relative">
+    <div className="flex flex-col h-[calc(100dvh-100px)] text-on-surface pb-2 relative">
       {/* Header action bar */}
       <div className="flex items-start justify-between mb-3 shrink-0">
         <Link href="/dashboard/rooms" className="mt-0.5 shrink-0 transition-colors text-on-surface-variant hover:text-primary">
@@ -389,7 +389,7 @@ export default function RoomDetailPage() {
         <button
           type="submit"
           disabled={isPending || !content.trim()}
-          className="aspect-square flex items-center justify-center bg-primary text-primary-on rounded-md shadow-2 hover:opacity-95 disabled:opacity-50 transition-opacity shrink-0"
+          className="w-12 h-12 flex items-center justify-center bg-primary text-primary-on rounded-md shadow-2 hover:opacity-95 disabled:opacity-50 transition-opacity shrink-0"
         >
           {isPending ? (
             <RefreshCw className="w-5 h-5 animate-spin" />

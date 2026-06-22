@@ -8,6 +8,9 @@ import { Home, FileText, Users, User, Layers } from "lucide-react";
 export default function MobileNav() {
   const pathname = usePathname();
 
+  const isRoomDetail = pathname.startsWith("/dashboard/rooms/") && pathname !== "/dashboard/rooms";
+  if (isRoomDetail) return null;
+
   const navItems = [
     { name: "Home", href: "/dashboard", icon: Home },
     { name: "Materials", href: "/dashboard/materials", icon: FileText },

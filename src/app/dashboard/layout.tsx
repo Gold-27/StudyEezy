@@ -37,8 +37,10 @@ export default function DashboardLayout({
     }
   }, []);
 
+  const isRoomDetail = pathname.startsWith("/dashboard/rooms/") && pathname !== "/dashboard/rooms";
+
   return (
-    <div className="min-h-screen bg-background text-on-background pb-16 md:pb-0">
+    <div className={`min-h-[100dvh] bg-background text-on-background ${isRoomDetail ? "" : "pb-16"} md:pb-0`}>
       {/* Sticky offline notification banner */}
       {!isOnline && (
         <div className="bg-error text-error-on px-4 py-2 text-center text-body-small font-semibold flex items-center justify-center gap-2 sticky top-0 z-50 animate-pulse">
