@@ -18,8 +18,8 @@ export const metadata: Metadata = {
   description: "StudyEezy is an AI-powered collaborative learning platform. Upload notes, generate summaries, master flashcards, and ace your quizzes with peer learning.",
   keywords: ["study", "learning", "AI tutor", "flashcards", "quizzes", "collaborative learning", "exam prep", "StudyEezy"],
   icons: {
-    icon: "/logo.jpeg",
-    apple: "/logo.jpeg",
+    icon: "/logo.png",
+    apple: "/logo.png",
   },
   openGraph: {
     title: "StudyEezy - AI Collaborative Learning",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     siteName: "StudyEezy",
     images: [
       {
-        url: "/logo.jpeg",
+        url: "/logo.png",
         width: 800,
         height: 600,
         alt: "StudyEezy Logo",

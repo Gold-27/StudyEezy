@@ -303,7 +303,7 @@ export default function AuthForm() {
     <div className="w-full max-w-sm mx-auto p-4 bg-surface rounded-lg shadow-1 border border-outline/10 text-on-surface max-h-[90dvh] overflow-y-auto">
       <div className="flex flex-col items-center mb-6">
         <div className="flex items-center gap-1 mb-2">
-          <Image src="/logo.jpeg" alt="StudyEezy Logo" width={32} height={32} className="rounded-md" />
+          <Image src="/logo.png" alt="StudyEezy Logo" width={32} height={32} className="rounded-md" />
           <h2 className="text-headline-small font-bold text-primary">
             Study<span className="text-tertiary">Eezy</span>
           </h2>
