@@ -102,8 +102,27 @@ export default function FlashcardsPage() {
 
       <section className="flex flex-col gap-4">
         {loading ? (
-          <div className="py-8 text-center text-body-medium text-on-surface-variant/70">
-            Loading flashcards...
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-surface p-5 rounded-lg border border-outline/10 shadow-1 h-[178px] flex flex-col justify-between">
+                <div className="flex flex-col gap-1 mb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="w-6 h-6 bg-primary/20 rounded mb-2"></div>
+                    <div className="w-8 h-8 bg-surface-variant rounded-full"></div>
+                  </div>
+                  <div className="h-5 bg-outline/10 rounded w-3/4"></div>
+                  <div className="h-3 bg-outline/10 rounded w-1/2 mt-1"></div>
+                </div>
+                
+                <div className="flex flex-col gap-2 mt-auto">
+                  <div className="flex justify-between">
+                    <div className="h-3 bg-outline/10 rounded w-16"></div>
+                    <div className="h-3 bg-outline/10 rounded w-20"></div>
+                  </div>
+                  <div className="w-full bg-outline/10 h-2 rounded-full overflow-hidden"></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : decks.length === 0 ? (
           <div className="py-12 border-2 border-dashed border-outline/20 rounded-lg text-center flex flex-col items-center gap-3">

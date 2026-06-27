@@ -64,8 +64,18 @@ export default function ActiveQuizPage() {
 
   if (loading) {
     return (
-      <div className="py-12 text-center text-body-medium text-on-surface-variant/70">
-        Loading quiz questions...
+      <div className="flex flex-col gap-6 pb-12 text-on-surface animate-pulse">
+        <div className="flex flex-col items-center">
+          <div className="h-8 w-64 bg-surface-variant rounded mb-2"></div>
+          <div className="h-4 w-48 bg-surface-variant rounded mt-1"></div>
+        </div>
+        <div className="bg-surface p-6 rounded-lg border border-outline/10 shadow-1 flex flex-col gap-5 mt-4">
+          <div className="h-4 w-32 bg-surface-variant rounded mb-2"></div>
+          <div className="h-6 w-full bg-surface-variant rounded mb-4"></div>
+          <div className="flex flex-col gap-3">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-[52px] w-full bg-surface-variant rounded-md"></div>)}
+          </div>
+        </div>
       </div>
     );
   }

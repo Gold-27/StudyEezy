@@ -104,8 +104,23 @@ export default function MaterialsPage() {
         </div>
         
         {loading ? (
-          <div className="py-8 text-center text-body-medium text-on-surface-variant/70">
-            Loading library...
+          <div className="flex flex-col gap-3 animate-pulse">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-surface p-4 rounded-lg border border-outline/10 shadow-1 flex items-center justify-between h-[84px]">
+                <div className="flex items-start gap-3 flex-1 mr-4">
+                  <div className="w-5 h-5 bg-primary/20 rounded mt-0.5 shrink-0"></div>
+                  <div className="flex flex-col gap-2 w-full">
+                    <div className="h-5 bg-outline/10 rounded w-1/3"></div>
+                    <div className="h-3 bg-outline/10 rounded w-1/4"></div>
+                  </div>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <div className="w-[34px] h-[34px] bg-surface-variant rounded-md"></div>
+                  <div className="w-[34px] h-[34px] bg-surface-variant rounded-md"></div>
+                  <div className="w-[34px] h-[34px] bg-error-container/50 rounded-md"></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (materials.filter(m => m.title.toLowerCase().includes(searchQuery.toLowerCase()))).length === 0 ? (
           <div className="py-12 border-2 border-dashed border-outline/20 rounded-lg text-center text-body-medium text-outline">

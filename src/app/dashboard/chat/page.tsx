@@ -160,8 +160,36 @@ export default function ChatPage() {
       {/* Message Area */}
       <div className="flex-1 bg-surface border border-outline/10 rounded-lg p-4 shadow-1 overflow-y-auto flex flex-col gap-4">
         {loading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <RefreshCw className="w-6 h-6 animate-spin text-primary" />
+          <div className="flex flex-col gap-4 w-full h-full animate-pulse p-2">
+            {/* AI Greeting */}
+            <div className="flex flex-col gap-1 max-w-[85%] self-start">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-5 h-5 bg-surface-variant rounded-full"></div>
+                <div className="h-3 w-16 bg-surface-variant rounded"></div>
+              </div>
+              <div className="bg-surface-variant/50 p-3 rounded-2xl rounded-tl-sm border border-outline/5 flex flex-col gap-2">
+                <div className="h-4 w-48 bg-surface-variant rounded"></div>
+                <div className="h-4 w-64 bg-surface-variant rounded"></div>
+              </div>
+            </div>
+            {/* User message */}
+            <div className="flex flex-col gap-1 max-w-[85%] self-end mt-2">
+              <div className="bg-primary/20 p-3 rounded-2xl rounded-tr-sm flex flex-col gap-2 items-end">
+                <div className="h-4 w-32 bg-primary/30 rounded"></div>
+              </div>
+            </div>
+            {/* AI response */}
+            <div className="flex flex-col gap-1 max-w-[85%] self-start mt-2">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-5 h-5 bg-surface-variant rounded-full"></div>
+                <div className="h-3 w-16 bg-surface-variant rounded"></div>
+              </div>
+              <div className="bg-surface-variant/50 p-3 rounded-2xl rounded-tl-sm border border-outline/5 flex flex-col gap-2">
+                <div className="h-4 w-[240px] bg-surface-variant rounded"></div>
+                <div className="h-4 w-[200px] bg-surface-variant rounded"></div>
+                <div className="h-4 w-[180px] bg-surface-variant rounded"></div>
+              </div>
+            </div>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center text-on-surface-variant/60 p-4">

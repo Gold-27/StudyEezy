@@ -65,8 +65,26 @@ export default function SummaryDetailPage() {
 
   if (loading) {
     return (
-      <div className="py-12 text-center text-body-medium text-on-surface-variant/70">
-        Loading summary content...
+      <div className="flex flex-col gap-6 pb-12 text-on-surface animate-pulse">
+        <div className="flex items-start gap-3">
+          <div className="w-5 h-5 bg-surface-variant rounded-full mt-1.5 shrink-0"></div>
+        </div>
+        <section className="bg-surface p-6 rounded-lg border border-outline/10 shadow-1 flex flex-col gap-4">
+          <div>
+            <div className="h-3 w-24 bg-secondary/30 rounded mb-2"></div>
+            <div className="h-8 w-64 bg-surface-variant rounded mt-1"></div>
+          </div>
+          <div className="border-t border-outline/10 pt-4 flex flex-col gap-4">
+            <div className="h-4 bg-surface-variant rounded w-full"></div>
+            <div className="h-4 bg-surface-variant rounded w-11/12"></div>
+            <div className="h-4 bg-surface-variant rounded w-full"></div>
+            <div className="h-4 bg-surface-variant rounded w-4/5"></div>
+            <div className="h-6 w-48 bg-primary/20 rounded mt-4 mb-2"></div>
+            <div className="h-4 bg-surface-variant rounded w-full"></div>
+            <div className="h-4 bg-surface-variant rounded w-full"></div>
+            <div className="h-4 bg-surface-variant rounded w-9/12"></div>
+          </div>
+        </section>
       </div>
     );
   }

@@ -13,6 +13,7 @@ import { deleteUserAccountAndData } from "@/actions/account";
 export default function ProfilePage() {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [loading, setLoading] = useState(true);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const router = useRouter();
@@ -35,6 +36,7 @@ export default function ProfilePage() {
           console.error("Failed to load preferences:", error);
         }
       }
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
@@ -123,6 +125,30 @@ export default function ProfilePage() {
       console.error("Error sending password reset email:", error);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6 text-on-surface max-w-2xl mx-auto w-full animate-pulse">
+        <div className="flex flex-col items-center justify-center py-4">
+          <div className="w-24 h-24 bg-surface-variant rounded-full mb-4"></div>
+          <div className="h-7 w-40 bg-surface-variant rounded mt-1"></div>
+          <div className="h-4 w-48 bg-surface-variant rounded mt-2"></div>
+        </div>
+        
+        <div className="flex flex-col gap-4">
+          <div className="h-[58px] bg-surface border border-outline/10 shadow-1 rounded-lg w-full"></div>
+          <div className="h-[58px] bg-surface border border-outline/10 shadow-1 rounded-lg w-full"></div>
+        </div>
+
+        <hr className="border-outline/10 my-2" />
+
+        <div className="flex flex-col gap-3">
+          <div className="h-[50px] bg-surface border border-outline/20 rounded-lg w-full"></div>
+          <div className="h-[50px] bg-surface border border-outline/20 rounded-lg w-full mt-2"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 text-on-surface max-w-2xl mx-auto w-full">

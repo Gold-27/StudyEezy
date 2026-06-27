@@ -238,8 +238,19 @@ export default function RoomsPage() {
         </div>
         
         {loading ? (
-          <div className="py-8 text-center text-body-medium text-on-surface-variant/70">
-            Loading study rooms...
+          <div className="flex flex-col gap-3 animate-pulse">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-surface p-4 rounded-lg border border-outline/10 shadow-1 flex items-center justify-between h-[84px]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 shrink-0"></div>
+                  <div className="flex flex-col gap-2">
+                    <div className="h-5 w-40 bg-surface-variant rounded"></div>
+                    <div className="h-3 w-24 bg-surface-variant rounded"></div>
+                  </div>
+                </div>
+                <div className="h-9 w-24 bg-surface-variant rounded-md shrink-0"></div>
+              </div>
+            ))}
           </div>
         ) : (rooms.filter(r => r.name.toLowerCase().includes(searchQuery.toLowerCase()))).length === 0 ? (
           <div className="py-12 border-2 border-dashed border-outline/20 rounded-lg text-center text-body-medium text-outline">

@@ -204,8 +204,35 @@ export default function RoomDetailPage() {
 
   if (loading) {
     return (
-      <div className="py-12 text-center text-body-medium text-on-surface-variant/70">
-        Entering study room...
+      <div className="flex flex-col h-[calc(100dvh-100px)] text-on-surface pb-2 animate-pulse">
+        <div className="flex items-start justify-between mb-3 shrink-0">
+          <div className="w-5 h-5 bg-surface-variant rounded mt-0.5"></div>
+          <div className="flex flex-col items-center">
+            <div className="h-5 w-32 bg-surface-variant rounded mb-1"></div>
+            <div className="h-4 w-24 bg-surface-variant rounded"></div>
+          </div>
+          <div className="w-9"></div>
+        </div>
+        <div className="flex-1 bg-surface border border-outline/10 rounded-lg p-4 shadow-1 flex flex-col gap-5 overflow-hidden">
+          {[1, 2].map(i => (
+            <div key={i} className="flex flex-col gap-3 p-4 bg-primary-container/10 border border-primary/10 rounded-lg">
+              <div className="h-4 w-16 bg-primary/20 rounded-full mb-2"></div>
+              <div className="h-5 w-3/4 bg-surface-variant rounded"></div>
+              <div className="h-5 w-1/2 bg-surface-variant rounded"></div>
+              <div className="flex flex-col gap-3 pl-3 border-l-2 border-outline/20 mt-2">
+                <div className="bg-surface p-3 rounded-md border border-outline/10 flex flex-col gap-2">
+                  <div className="h-3 w-20 bg-surface-variant rounded"></div>
+                  <div className="h-4 w-full bg-surface-variant rounded"></div>
+                  <div className="h-4 w-5/6 bg-surface-variant rounded"></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2 mt-3 shrink-0">
+          <div className="flex-1 h-12 bg-surface-variant rounded-md"></div>
+          <div className="w-12 h-12 bg-surface-variant rounded-md shrink-0"></div>
+        </div>
       </div>
     );
   }
